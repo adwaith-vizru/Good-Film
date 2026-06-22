@@ -9,7 +9,6 @@ import {
   RefreshCw,
   CreditCard,
   MapPin,
-  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -55,59 +54,6 @@ function KioskHome() {
     <main className="min-h-screen bg-background flex flex-col">
       {/* Page content */}
       <div className="max-w-[1792px] w-full mx-auto px-16 pt-12 pb-10 flex-1 flex flex-col gap-8">
-        {/* Intro banner */}
-        <section
-          className="relative overflow-hidden rounded-2xl text-white px-10 flex items-center"
-          style={{
-            background:
-              "linear-gradient(120deg, var(--navy-start) 0%, var(--navy-end) 100%)",
-            height: 130,
-            boxShadow: "var(--shadow-card)",
-          }}
-        >
-          {/* soft glow */}
-          <div
-            className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full"
-            style={{
-              background:
-                "radial-gradient(closest-side, rgba(163,230,53,0.35), transparent 70%)",
-            }}
-            aria-hidden
-          />
-          <div
-            className="pointer-events-none absolute right-40 bottom-[-60px] h-56 w-56 rounded-full"
-            style={{
-              background:
-                "radial-gradient(closest-side, rgba(255,255,255,0.08), transparent 70%)",
-            }}
-            aria-hidden
-          />
-
-          <div className="flex items-center gap-5 relative">
-            <div
-              className="h-14 w-14 rounded-full flex items-center justify-center"
-              style={{
-                background: "rgba(255,255,255,0.08)",
-                border: "1px solid rgba(255,255,255,0.15)",
-              }}
-              aria-hidden
-            >
-              <ShieldCheck className="h-6 w-6 text-[#A3E635]" strokeWidth={2} />
-            </div>
-            <div>
-              <h2 className="text-2xl leading-8 font-semibold">Welcome</h2>
-              <p className="text-sm text-white/70 mt-1">
-                Select a service to begin
-              </p>
-            </div>
-          </div>
-
-          <div className="ml-auto relative hidden md:flex items-center gap-3 text-white/60 text-xs">
-            <span className="h-2 w-2 rounded-full bg-[#A3E635] shadow-[0_0_12px_#A3E635]" />
-            Kiosk online
-          </div>
-        </section>
-
         {/* Services grid */}
         <section className="flex-1">
           <div className="mb-5">
