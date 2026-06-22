@@ -222,9 +222,9 @@ function ServiceCard({
 }: Service & { index: number }) {
   return (
     <button
-      className="group relative text-left bg-card rounded-2xl border border-border p-7 transition-all duration-200 hover:-translate-y-0.5 hover:border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      className="group relative text-left bg-card rounded-2xl border border-border p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       style={{
-        height: 216,
+        height: 176,
         boxShadow: "var(--shadow-card)",
       }}
       onMouseEnter={(e) =>
@@ -236,25 +236,25 @@ function ServiceCard({
     >
       <div className="flex items-start justify-between">
         <div
-          className="h-14 w-14 rounded-2xl flex items-center justify-center text-white transition-transform duration-200 group-hover:-translate-y-0.5"
+          className="h-12 w-12 rounded-xl flex items-center justify-center text-white transition-transform duration-200 group-hover:-translate-y-0.5"
           style={{
             background:
               "linear-gradient(135deg, var(--navy-start), var(--navy-end))",
           }}
           aria-hidden
         >
-          <Icon className="h-6 w-6" strokeWidth={2} />
+          <Icon className="h-5 w-5" strokeWidth={2} />
         </div>
         <span className="text-xs tabular-nums tracking-widest text-muted-foreground">
           {String(index).padStart(2, "0")}
         </span>
       </div>
 
-      <div className="mt-7">
-        <h3 className="text-[21px] leading-7 font-semibold text-foreground">
+      <div className="mt-5">
+        <h3 className="text-lg leading-7 font-semibold text-foreground">
           {title}
         </h3>
-        <p className="mt-1.5 text-sm text-muted-foreground line-clamp-1">
+        <p className="mt-1 text-sm text-muted-foreground line-clamp-1">
           {hint}
         </p>
       </div>
@@ -262,7 +262,7 @@ function ServiceCard({
       {/* subtle bottom accent on hover */}
       <span
         aria-hidden
-        className="absolute left-7 right-7 bottom-5 h-[2px] rounded-full bg-accent opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute left-6 right-6 bottom-5 h-[2px] rounded-full bg-accent opacity-0 group-hover:opacity-100 transition-opacity"
       />
     </button>
   );
