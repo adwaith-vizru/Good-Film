@@ -9,7 +9,6 @@ import {
   RefreshCw,
   CreditCard,
   MapPin,
-  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 
