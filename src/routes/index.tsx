@@ -147,25 +147,6 @@ function KioskHome() {
   );
 }
 
-function KioskIconButton({
-  children,
-  label,
-  iconOnly = false,
-}: {
-  children: React.ReactNode;
-  label: string;
-  iconOnly?: boolean;
-}) {
-  return (
-    <button
-      aria-label={label}
-      className={`h-11 ${iconOnly ? "w-11 justify-center" : "px-3"} inline-flex items-center gap-2 rounded-xl border border-border bg-card text-text-secondary hover:bg-muted hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background`}
-    >
-      {children}
-    </button>
-  );
-}
-
 function ServiceCard({
   title,
   hint,
