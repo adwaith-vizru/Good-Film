@@ -1322,10 +1322,10 @@ function KioskHome() {
     const passportWizardSteps = [
       { id: "SCAN_PASSPORT", label: "Scan Passport" },
       { id: "CONFIRM_DETAILS", label: "Confirm Details" },
-      { id: "UPLOAD_DOCUMENTS", label: "Upload Documents" },
+      { id: "UPLOAD_DOCUMENTS", label: "Documents" },
       { id: "PHOTO_CAPTURE", label: "Photo Capture" },
       { id: "BIOMETRICS", label: "Biometrics" },
-      { id: "REVIEW_APPLICATION", label: "Review Application" },
+      { id: "REVIEW_APPLICATION", label: "Review" },
       { id: "FEE_CALCULATION", label: "Fee Calculation" }
     ];
 
