@@ -54,7 +54,7 @@ function KioskHome() {
   return (
     <main className="min-h-screen bg-background flex flex-col">
       {/* Page content */}
-      <div className="max-w-[1792px] w-full mx-auto px-16 pt-10 pb-10 flex-1 flex flex-col gap-8">
+      <div className="max-w-[1792px] w-full mx-auto px-16 pt-12 pb-10 flex-1 flex flex-col gap-8">
         {/* Intro banner */}
         <section
           className="relative overflow-hidden rounded-2xl text-white px-10 flex items-center"
