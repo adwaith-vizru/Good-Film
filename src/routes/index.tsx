@@ -54,50 +54,6 @@ const services: Service[] = [
 function KioskHome() {
   return (
     <main className="min-h-screen bg-background flex flex-col">
-      {/* Top app bar */}
-      <header className="h-20 bg-card border-b border-border">
-        <div className="h-full max-w-[1792px] mx-auto px-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div
-              className="h-11 w-11 rounded-full flex items-center justify-center text-white"
-              style={{
-                background:
-                  "linear-gradient(135deg, var(--navy-start), var(--navy-end))",
-              }}
-              aria-hidden
-            >
-              <ShieldCheck className="h-5 w-5" strokeWidth={2} />
-            </div>
-            <div className="leading-tight">
-              <p className="text-[11px] tracking-[0.18em] uppercase text-muted-foreground">
-                Government Self-Service
-              </p>
-              <h1 className="text-lg font-semibold text-foreground">
-                e-Passport &amp; Visa Services
-              </h1>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <KioskIconButton label="Language: English">
-              <Languages className="h-5 w-5" strokeWidth={2} />
-              <span className="text-sm font-medium">EN</span>
-            </KioskIconButton>
-            <KioskIconButton label="Accessibility settings">
-              <Type className="h-5 w-5" strokeWidth={2} />
-              <span className="text-sm font-medium">A↔A</span>
-            </KioskIconButton>
-            <KioskIconButton label="Help" iconOnly>
-              <HelpCircle className="h-5 w-5" strokeWidth={2} />
-            </KioskIconButton>
-            <div className="ml-2 flex items-center gap-2 h-11 px-3 rounded-xl border border-border">
-              <UserCircle2 className="h-5 w-5 text-muted-foreground" strokeWidth={2} />
-              <span className="text-sm text-text-secondary">Guest</span>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Page content */}
       <div className="max-w-[1792px] w-full mx-auto px-16 pt-10 pb-10 flex-1 flex flex-col gap-8">
         {/* Intro banner */}
