@@ -9,10 +9,7 @@ import {
   RefreshCw,
   CreditCard,
   MapPin,
-  Languages,
-  Type,
   HelpCircle,
-  UserCircle2,
   ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
