@@ -34,7 +34,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
 
   // Live General Settings State
-  const [appearance, setAppearance] = useState("System");
+  const [appearance, setAppearance] = useState("Light");
   const [contrast, setContrast] = useState("Standard");
   const [accentColor, setAccentColor] = useState("Good Film Navy");
   const [iconColor, setIconColor] = useState("Default");

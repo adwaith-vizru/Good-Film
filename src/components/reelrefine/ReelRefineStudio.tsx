@@ -60,6 +60,11 @@ export const ReelRefineStudio: React.FC = () => {
   // Toast Feedback State
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
+  // Initialize Light Mode as default
+  React.useEffect(() => {
+    document.documentElement.classList.remove("dark");
+  }, []);
+
   const appliedCount = improvements.filter((imp) => imp.applied).length;
   const versionTag = appliedCount === 0 ? "v1.4 - Active" : `v${appliedCount + 1}.0 - Modified`;
 
