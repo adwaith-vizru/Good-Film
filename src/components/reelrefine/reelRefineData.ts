@@ -868,20 +868,22 @@ export const PROJECT_IMPROVEMENTS: Record<string, ScriptImprovement[]> = {
       id: "imp-201",
       category: "Structure",
       title: "Tighten Sector 7 Neon Alley Chase Pacing",
-      rationale: "Act II pacing currently drifts between Pages 58–74 in the memory vault. Elevating the neural purge clock sharpens dramatic tension.",
-      sceneLocation: "INT. UNDERGROUND MEMORY VAULT",
+      rationale: "Act II pacing currently drifts in Sector 7 alley. Elevating the neural purge clock sharpens dramatic tension.",
+      sceneLocation: "EXT. SECTOR 7 - NEON ALLEYWAY",
       pageRange: "Pages 58–74",
       originalSnippet: `REN
-The server racks go on for half a mile. We could be searching for hours.
+(into neural-link)
+Echo-4, scan the alley. The memory smuggler passed through here forty seconds ago.
 
 ECHO-4 (V.O.)
-Take your time, Ren. The Syndicate's security sweeps only occur every forty minutes.`,
+Signal detected. Traces of raw bio-data left on the optic terminal near the ramen stall.`,
       suggestedSnippet: `REN
-The server racks go on for half a mile!
+(into neural-link)
+Echo-4! The memory smuggler's neural trace is fading fast!
 
 ECHO-4 (V.O.)
 (alarm blaring)
-We don't have hours, Ren! The Syndicate initiated a neural purge sweep! You have three minutes before all target bio-chips melt!`,
+Signal detected! Bio-data decay rate is critical near the ramen stall! We have twenty seconds before full purge!`,
       applied: false,
     },
     {
@@ -889,13 +891,10 @@ We don't have hours, Ren! The Syndicate initiated a neural purge sweep! You have
       category: "Characters",
       title: "Deepen Detective Ren's Synthetic Backstory",
       rationale: "Ren's internal conflict regarding his own erased human memories elevates emotional engagement in Act I.",
-      sceneLocation: "INT. SYNTH DETECTIVE OFFICE",
+      sceneLocation: "EXT. SECTOR 7 - NEON ALLEYWAY",
       pageRange: "Pages 15–20",
-      originalSnippet: `REN
-Just another missing memory file. Close the case folder.`,
-      suggestedSnippet: `REN
-(touching his neck port)
-Another wiped identity... I know what it feels like to wake up in rain with no past. We're keeping this case open.`,
+      originalSnippet: `REN (32), a synthetic detective with optics glowing ice-blue, pulls his rain-soaked trench coat tight.`,
+      suggestedSnippet: `REN (32), a synthetic detective with ice-blue optics flickering with fragmented memories, clutches his rain-soaked trench coat.`,
       applied: false,
     },
     {
@@ -903,12 +902,12 @@ Another wiped identity... I know what it feels like to wake up in rain with no p
       category: "Dialogue",
       title: "Sharpen Syndicate Boss Confrontation",
       rationale: "Replacing corporate jargon with a high-stakes psychological bribe heightens climactic dialogue.",
-      sceneLocation: "INT. HOLOGRAPHIC SERVER CORE",
+      sceneLocation: "INT. UNDERGROUND MEMORY VAULT",
       pageRange: "Pages 92–98",
       originalSnippet: `SYNTH-DEALER
 You shouldn't have tracked me down here, Ren. These memories belong to the Syndicate.`,
       suggestedSnippet: `SYNTH-DEALER
-Walk away, Ren. In this bio-chip is your original childhood memory—the only piece of your human soul left. Destroy me, and you destroy yourself.`,
+Walk away, Ren. In this bio-chip is your original human memory—the only piece of your past left. Destroy me, and you destroy yourself.`,
       applied: false,
     },
     {
@@ -918,11 +917,8 @@ Walk away, Ren. In this bio-chip is your original childhood memory—the only pi
       rationale: "Establishing acid rain weather hazards on page 4 immediately grounds the flooded cyberpunk setting.",
       sceneLocation: "EXT. SECTOR 7 ALLEYWAY",
       pageRange: "Pages 4–8",
-      originalSnippet: `REN
-It's raining pretty hard tonight.`,
-      suggestedSnippet: `REN
-(acid rain sizzling off shoulder plating)
-The storm's eating through the upper deck seals. City's drowning faster than usual.`,
+      originalSnippet: `Acid rain slicks the chrome cobblestones. Neon signs flicker in Japanese and High-Tech script.`,
+      suggestedSnippet: `Corrosive acid rain sizzles on chrome cobblestones. Neon signs flicker wildly in Japanese and High-Tech script.`,
       applied: false,
     },
   ],
@@ -932,13 +928,14 @@ The storm's eating through the upper deck seals. City's drowning faster than usu
       category: "Structure",
       title: "Escalate Blue Note Club Heist Tension",
       rationale: "Introducing Police Chief Vance's unexpected arrival at the club during scene 12 escalates Act II danger.",
-      sceneLocation: "INT. BLUE NOTE CLUB - BACKROOM",
+      sceneLocation: "INT. BLUE NOTE CLUB",
       pageRange: "Pages 45–60",
       originalSnippet: `LEO
-We can study the museum blueprints here until closing time. Nobody ever bothers us in the back storage room.`,
+(without breaking tempo)
+I told you I'm out of the game, Clara. The Chief has eyes on every door in this club.`,
       suggestedSnippet: `LEO
-(cramming blueprints inside grand piano)
-Chief Vance's squad car just pulled up out front! Keep playing the C-minor blues, Clara—don't miss a beat!`,
+(without breaking tempo)
+I told you I'm out of the game, Clara! Chief Vance's squad car just pulled up out front!`,
       applied: false,
     },
     {
@@ -946,13 +943,13 @@ Chief Vance's squad car just pulled up out front! Keep playing the C-minor blues
       category: "Characters",
       title: "Flesh out Clara's High-Stakes Dilemma",
       rationale: "Anchoring Clara's heist motive in protecting her brother's framed reputation elevates character sympathy.",
-      sceneLocation: "INT. VIP LOUNGE",
+      sceneLocation: "INT. BLUE NOTE CLUB",
       pageRange: "Pages 10–14",
       originalSnippet: `CLARA
-I need a favor, Leo. You're the only one who knows how to open the chief's private safe.`,
+The Chief is the one who hired the thieves. Look under the stamp, Leo. That's his personal seal.`,
       suggestedSnippet: `CLARA
 (hands trembling)
-The Chief framed my brother for the dockyard robbery, Leo. If I don't swap that painting by midnight, he signs his transfer to Sing Sing.`,
+The Chief framed my brother for the heist, Leo. Look under the stamp—that's his personal seal!`,
       applied: false,
     },
     {
@@ -960,13 +957,18 @@ The Chief framed my brother for the dockyard robbery, Leo. If I don't swap that 
       category: "Dialogue",
       title: "Sharpen Chief Vance Interrogation Subtext",
       rationale: "Replacing blunt threats with subtle, rhythmically paced subtext makes the police chief far more menacing.",
-      sceneLocation: "INT. POLICE HEADQUARTERS",
+      sceneLocation: "INT. BLUE NOTE CLUB",
       pageRange: "Pages 78–84",
-      originalSnippet: `CHIEF VANCE
-If you don't tell me where Clara is, I'm locking you up for good!`,
-      suggestedSnippet: `CHIEF VANCE
-(tapping ring against desk in sync with jazz tempo)
-You play a beautiful piano, Mr. Morgan. It'd be a tragedy if your fingers met a heavy drawer in cell block B.`,
+      originalSnippet: `LEO
+If Chief Vance finds out I have this...
+
+CLARA
+He won't. Not if we move before midnight.`,
+      suggestedSnippet: `LEO
+If Vance catches us with his seal...
+
+CLARA
+He won't. Not if we play our final set and disappear before midnight.`,
       applied: false,
     },
   ],
@@ -976,13 +978,14 @@ You play a beautiful piano, Mr. Morgan. It'd be a tragedy if your fingers met a 
       category: "Structure",
       title: "Heighten Keres Trench Descent Pressure",
       rationale: "Act II pacing currently drifts on Pages 52–68. Injecting hull pressure cracks elevates claustrophobic urgency.",
-      sceneLocation: "INT. SUBMARINE LEVIATHAN - COCKPIT",
+      sceneLocation: "INT. SUBMARINE LEVIATHAN - CONN TOWER",
       pageRange: "Pages 52–68",
       originalSnippet: `JONAS
-The depth gauge reads 4,500 metres. Ballast tanks are operating at normal limits.`,
+(without looking up)
+You want to take my boat into the Keres Trench. Uncharted. Unpressurised below 5,000 metres.`,
       suggestedSnippet: `JONAS
 (bulkhead rivet snaps like a gunshot)
-Depth 4,800! We're three hundred metres past safe hull collapse limits! Hold onto something!`,
+Depth 4,800! We're three hundred metres past safe hull collapse limits! The Keres Trench will crush us!`,
       applied: false,
     },
     {
@@ -990,12 +993,18 @@ Depth 4,800! We're three hundred metres past safe hull collapse limits! Hold ont
       category: "Characters",
       title: "Strengthen Dr. Mara Chen & Captain Jonas Conflict",
       rationale: "Personal backstory regarding Jonas' lost crew deepens emotional resonance before trench entry.",
-      sceneLocation: "INT. RESEARCH VESSEL NEREID",
+      sceneLocation: "INT. SUBMARINE LEVIATHAN - CONN TOWER",
       pageRange: "Pages 16–22",
-      originalSnippet: `JONAS
-I don't take my sub into uncharted trenches for routine rescue missions.`,
-      suggestedSnippet: `JONAS
-Five years ago I left four friends at the bottom of the Keres Trench, Doctor. I swore I'd never dive back down there for anyone.`,
+      originalSnippet: `MARA
+Your boat is the only vessel rated for that depth.
+
+JONAS
+Rated and tested are two very different words, Doctor.`,
+      suggestedSnippet: `MARA
+Your boat is the only vessel rated for that depth.
+
+JONAS
+Five years ago I left four crewmen at the bottom of that trench, Doctor. Rated and tested are two very different words.`,
       applied: false,
     },
     {
@@ -1003,13 +1012,21 @@ Five years ago I left four friends at the bottom of the Keres Trench, Doctor. I 
       category: "Dialogue",
       title: "Eliminate Sonar Exposition in Climax",
       rationale: "Replacing spoken sonar calculations with visual ocean viewport reactions heightens climactic awe.",
-      sceneLocation: "INT. ABYSSAL STATION - AIRLOCK",
+      sceneLocation: "INT. SUBMARINE LEVIATHAN - CONN TOWER",
       pageRange: "Pages 85–92",
       originalSnippet: `MARA
-The sonar frequency is pulsing at 400 hertz, indicating a massive underwater structure!`,
+(whispering)
+That signal... it's not from the station.
+
+JONAS
+No. It's coming from below it.`,
       suggestedSnippet: `MARA
 (staring out viewport as massive bioluminescent rings ignite in the dark)
-Jonas... look at the trench floor. That's no natural reef.`,
+Jonas... look at the trench floor. That's no natural station ping.
+
+JONAS
+(whispering)
+No. It's something ancient awakening below us.`,
       applied: false,
     },
   ],
@@ -1310,10 +1327,19 @@ export function getImprovementsForProject(project: ProjectOption): ScriptImprove
       category: "Structure",
       title: `Optimize Act II Pacing & Urgency in ${project.title}`,
       rationale: `Act II pacing currently drifts mid-script. Elevating high-stakes consequences sharpens dramatic tension.`,
-      sceneLocation: "INT. MAIN SETTING - SCENE 12",
+      sceneLocation: "INT. SHUTTLE COCKPIT - MID-FLIGHT",
       pageRange: "Pages 50–65",
-      originalSnippet: `PROTAGONIST\nWe have plenty of time to analyze the situation before proceeding.`,
-      suggestedSnippet: `PROTAGONIST\n(checking timer)\nWe don't have time! We have less than ten minutes before the perimeter locks us down!`,
+      originalSnippet: `MARCUS
+The secondary generator is holding at sixty percent. We should reach orbital equilibrium in twenty minutes.
+
+ALEX
+Good. I'll recalibrate the sensor array while we wait.`,
+      suggestedSnippet: `MARCUS
+(timer flashing red)
+The secondary generator is flickering at thirty percent! We have less than five minutes before orbit decay!
+
+ALEX
+Hold her steady, Marcus! I'm rerouting main power now!`,
       applied: false,
     },
     {
@@ -1321,10 +1347,13 @@ export function getImprovementsForProject(project: ProjectOption): ScriptImprove
       category: "Dialogue",
       title: "Eliminate Expositional Dialogue in Climax",
       rationale: "Replacing spoken explanations with visual reactions heightens tension and visual storytelling.",
-      sceneLocation: "INT. CLIMAX LOCATION",
+      sceneLocation: "INT. MISSION CONTROL - BRIEFING ROOM",
       pageRange: "Pages 85–95",
-      originalSnippet: `CHARACTER A\nThis system failure means the energy grid is about to overload completely!`,
-      suggestedSnippet: `CHARACTER A\n(watching warnings flash crimson)\nIt's overloading... brace yourself!`,
+      originalSnippet: `HAYES
+Protocol strictly forbids unsanctioned launches during solar surges. Permission denied, Dr. Rivers.`,
+      suggestedSnippet: `HAYES
+(slamming table)
+I lost two pilots to solar storms last year, Alex. I won't let you throw your lives away. Launch denied!`,
       applied: false,
     },
   ];

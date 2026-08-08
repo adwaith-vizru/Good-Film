@@ -37,12 +37,66 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
   const appliedImprovements = improvements.filter((imp) => imp.applied);
 
   // Dynamically replace original snippets with suggested snippets for all applied improvements
-  let polishedScriptContent = rawScriptContent.replace(/\r\n/g, "\n");
+  let polishedScriptContent = rawScriptContent
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((line) => line.trimEnd())
+    .join("\n");
+  const appliedSuggestedLines = new Set<string>();
+
   appliedImprovements.forEach((imp) => {
     if (imp.originalSnippet && imp.suggestedSnippet) {
       const origNorm = imp.originalSnippet.replace(/\r\n/g, "\n").trim();
       const sugNorm = imp.suggestedSnippet.replace(/\r\n/g, "\n").trim();
-      polishedScriptContent = polishedScriptContent.replace(origNorm, sugNorm);
+      let replaced = false;
+
+      if (origNorm && polishedScriptContent.includes(origNorm)) {
+        polishedScriptContent = polishedScriptContent.replace(origNorm, sugNorm);
+        replaced = true;
+      } else if (origNorm) {
+        // Fallback flexible line-by-line replacement if whitespace slightly differs
+        const origLines = origNorm.split("\n").map((l) => l.trim()).filter(Boolean);
+        const firstLine = origLines[0];
+        const lastLine = origLines[origLines.length - 1];
+
+        if (firstLine && lastLine) {
+          const contentLines = polishedScriptContent.split("\n");
+          let startIdx = -1;
+          let endIdx = -1;
+
+          for (let i = 0; i < contentLines.length; i++) {
+            if (contentLines[i].trim() === firstLine) {
+              startIdx = i;
+              for (let j = i; j < Math.min(i + origLines.length + 3, contentLines.length); j++) {
+                if (contentLines[j].trim() === lastLine) {
+                  endIdx = j;
+                  break;
+                }
+              }
+              if (endIdx !== -1) break;
+            }
+          }
+
+          if (startIdx !== -1 && endIdx !== -1) {
+            contentLines.splice(startIdx, endIdx - startIdx + 1, sugNorm);
+            polishedScriptContent = contentLines.join("\n");
+            replaced = true;
+          }
+        }
+      }
+
+      if (replaced) {
+        sugNorm.split("\n").forEach((line) => {
+          const trimmed = line.trim();
+          if (
+            trimmed.length > 2 &&
+            !trimmed.startsWith("(") &&
+            !["ALEX", "MARCUS", "HAYES", "JONAS", "MARA", "REN", "CLARA", "LEO", "SYNTH-DEALER", "CHIEF VANCE", "CONTROL (V.O.)", "ECHO-4 (V.O.)"].includes(trimmed)
+          ) {
+            appliedSuggestedLines.add(trimmed);
+          }
+        });
+      }
     }
   });
 
@@ -54,20 +108,6 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  // Collect specific lines from applied suggested snippets to highlight in green
-  const appliedSuggestedLines = new Set<string>();
-  appliedImprovements.forEach((imp) => {
-    imp.suggestedSnippet.split("\n").forEach((line) => {
-      const trimmed = line.trim();
-      if (
-        trimmed.length > 3 &&
-        !["ALEX", "MARCUS", "HAYES", "JONAS", "MARA", "REN", "CLARA", "LEO"].includes(trimmed)
-      ) {
-        appliedSuggestedLines.add(trimmed);
-      }
-    });
-  });
 
   return (
     <div className="fixed inset-y-0 right-0 w-full sm:w-[480px] lg:w-[560px] bg-card border-l border-border shadow-2xl z-50 flex flex-col transition-all duration-300 font-sans">
