@@ -108,10 +108,10 @@ export const HomePage: React.FC<HomePageProps> = ({
       {/* Main Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
         <div>
-          <h2 className="text-2xl font-display font-semibold text-[#0F294D] tracking-tight">
+          <h2 className="text-2xl font-display font-semibold text-[#0F294D] dark:text-foreground tracking-tight">
             Movie Projects & Screenplay Cards
           </h2>
-          <p className="text-xs text-[#64748B] font-medium">
+          <p className="text-xs text-[#64748B] dark:text-muted-foreground font-medium">
             Choose a movie script to jump directly into its analysis, script snapshot, and budget plan.
           </p>
         </div>
@@ -119,7 +119,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         <button
           type="button"
           onClick={onGoToUpload}
-          className="inline-flex items-center gap-2 text-xs font-semibold text-[#001b94] hover:text-[#FF6F00] transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-[#001b94] dark:text-sky-400 hover:text-[#FF6F00] transition-colors"
         >
           <Upload className="w-4 h-4" />
           <span>+ Import external file (.fdx / .pdf)</span>
@@ -134,7 +134,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search movies by title, author, genre, or keyword..."
-          className="w-full pl-11 pr-10 py-3 text-sm bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#001b94] focus:border-[#001b94] placeholder:text-slate-400 font-medium transition-all shadow-xs"
+          className="w-full pl-11 pr-10 py-3 text-sm bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#001b94] dark:focus:ring-sky-400 focus:border-[#001b94] dark:focus:border-sky-400 placeholder:text-slate-400 font-medium transition-all shadow-xs text-foreground"
         />
         {searchQuery && (
           <button
@@ -151,13 +151,13 @@ export const HomePage: React.FC<HomePageProps> = ({
       {/* Movie Cards Grid */}
       {filteredProjects.length === 0 ? (
         <div className="text-center py-16 space-y-3">
-          <Search className="w-10 h-10 mx-auto text-slate-300" />
-          <h3 className="text-lg font-display font-semibold text-[#0F294D]">No movies found</h3>
-          <p className="text-xs text-[#64748B] font-medium">No screenplays match "{searchQuery}". Try a different search term.</p>
+          <Search className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-600" />
+          <h3 className="text-lg font-display font-semibold text-[#0F294D] dark:text-foreground">No movies found</h3>
+          <p className="text-xs text-[#64748B] dark:text-muted-foreground font-medium">No screenplays match "{searchQuery}". Try a different search term.</p>
           <button
             type="button"
             onClick={() => setSearchQuery("")}
-            className="text-xs font-semibold text-[#001b94] hover:text-[#FF6F00] transition-colors"
+            className="text-xs font-semibold text-[#001b94] dark:text-sky-400 hover:text-[#FF6F00] transition-colors"
           >
             Clear search
           </button>

@@ -66,10 +66,10 @@ export const DragDropUploader: React.FC<DragDropUploaderProps> = ({
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-[#FF6F00]/10 text-[#FF6F00] border border-[#FF6F00]/20">
           <Sparkles className="w-3.5 h-3.5 text-[#FF6F00]" /> Screenplay Analysis Studio
         </span>
-        <h1 className="text-3xl md:text-4xl font-normal font-display tracking-tight text-[#0F294D]">
+        <h1 className="text-3xl md:text-4xl font-normal font-display tracking-tight text-[#0F294D] dark:text-foreground">
           Polish your script. Plan your production.
         </h1>
-        <p className="text-sm text-[#64748B] max-w-xl mx-auto leading-relaxed font-medium">
+        <p className="text-sm text-[#64748B] dark:text-muted-foreground max-w-xl mx-auto leading-relaxed font-medium">
           Upload your screenplay for instantaneous Coverage AI insights, targeted dialogue fixes, and a 3-part production plan.
         </p>
       </div>
@@ -77,26 +77,26 @@ export const DragDropUploader: React.FC<DragDropUploaderProps> = ({
       {/* Main Upload Card / Analysis Loading */}
       {isAnalyzing ? (
         <div className="bg-card rounded-xl border border-border p-8 md:p-12 text-center space-y-6 animate-fade-in">
-          <div className="w-16 h-16 bg-[#EBF3FC] rounded-full flex items-center justify-center mx-auto border border-[#001b94]/20 text-[#001b94]">
+          <div className="w-16 h-16 bg-[#EBF3FC] dark:bg-sky-950/60 rounded-full flex items-center justify-center mx-auto border border-[#001b94]/20 dark:border-sky-800/60 text-[#001b94] dark:text-sky-300">
             <Sparkles className="w-8 h-8 animate-spin-slow" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-medium text-[#0F294D]">Analyzing Screenplay</h3>
+            <h3 className="text-xl font-medium text-[#0F294D] dark:text-foreground">Analyzing Screenplay</h3>
             <p className="text-sm font-medium text-[#FF6F00]">{currentBeat.label}</p>
           </div>
 
           {/* 3 Beats Progress Bar */}
           <div className="max-w-md mx-auto space-y-2">
-            <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden border border-border">
+            <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-border">
               <div
-                className="h-full bg-[#001b94] transition-all duration-700 ease-out rounded-full"
+                className="h-full bg-[#001b94] dark:bg-sky-500 transition-all duration-700 ease-out rounded-full"
                 style={{ width: `${currentBeat.progress}%` }}
               />
             </div>
-            <div className="flex justify-between text-xs text-[#64748B] px-1 font-medium">
-              <span className={analysisBeat >= 0 ? "text-[#001b94] font-bold" : ""}>1. Parsing</span>
-              <span className={analysisBeat >= 1 ? "text-[#001b94] font-bold" : ""}>2. Strengths</span>
-              <span className={analysisBeat >= 2 ? "text-[#001b94] font-bold" : ""}>3. Spotting Fixes</span>
+            <div className="flex justify-between text-xs text-[#64748B] dark:text-muted-foreground px-1 font-medium">
+              <span className={analysisBeat >= 0 ? "text-[#001b94] dark:text-sky-400 font-bold" : ""}>1. Parsing</span>
+              <span className={analysisBeat >= 1 ? "text-[#001b94] dark:text-sky-400 font-bold" : ""}>2. Strengths</span>
+              <span className={analysisBeat >= 2 ? "text-[#001b94] dark:text-sky-400 font-bold" : ""}>3. Spotting Fixes</span>
             </div>
           </div>
         </div>
@@ -118,8 +118,8 @@ export const DragDropUploader: React.FC<DragDropUploaderProps> = ({
             }}
             className={`cursor-pointer rounded-xl border-2 border-dashed p-8 md:p-12 text-center transition-all duration-200 bg-card ${
               isDragOver
-                ? "border-[#001b94] bg-[#EBF3FC]/50 scale-[1.01]"
-                : "border-border hover:border-[#001b94]"
+                ? "border-[#001b94] dark:border-sky-400 bg-[#EBF3FC]/50 dark:bg-sky-950/40 scale-[1.01]"
+                : "border-border hover:border-[#001b94] dark:hover:border-sky-400"
             }`}
           >
             <input
@@ -129,41 +129,41 @@ export const DragDropUploader: React.FC<DragDropUploaderProps> = ({
               accept=".pdf,.fdx,.txt"
               className="hidden"
             />
-            <div className="w-16 h-16 bg-[#EBF3FC] rounded-xl border border-[#001b94]/20 flex items-center justify-center mx-auto mb-4 text-[#001b94]">
+            <div className="w-16 h-16 bg-[#EBF3FC] dark:bg-sky-950/60 rounded-xl border border-[#001b94]/20 dark:border-sky-800/60 flex items-center justify-center mx-auto mb-4 text-[#001b94] dark:text-sky-300">
               <Upload className="w-8 h-8" />
             </div>
-            <h3 className="text-xl font-medium text-[#0F294D] mb-1">
+            <h3 className="text-xl font-medium text-[#0F294D] dark:text-foreground mb-1">
               Drag & drop your screenplay here
             </h3>
-            <p className="text-xs text-[#64748B] mb-4">
-              Supports <span className="font-semibold text-[#0F294D]">.pdf</span>,{" "}
-              <span className="font-semibold text-[#0F294D]">.fdx</span> (Final Draft), or{" "}
-              <span className="font-semibold text-[#0F294D]">.txt</span> files
+            <p className="text-xs text-[#64748B] dark:text-muted-foreground mb-4">
+              Supports <span className="font-semibold text-[#0F294D] dark:text-foreground">.pdf</span>,{" "}
+              <span className="font-semibold text-[#0F294D] dark:text-foreground">.fdx</span> (Final Draft), or{" "}
+              <span className="font-semibold text-[#0F294D] dark:text-foreground">.txt</span> files
             </p>
             <button
               type="button"
-              className="px-6 py-2.5 bg-[#001b94] hover:bg-[#001470] text-white font-medium text-xs uppercase tracking-wider rounded-lg transition-colors focus:ring-2 focus:ring-[#001b94] focus:outline-none"
+              className="px-6 py-2.5 bg-[#001b94] dark:bg-sky-600 hover:bg-[#001470] dark:hover:bg-sky-500 text-white font-medium text-xs uppercase tracking-wider rounded-lg transition-colors focus:ring-2 focus:ring-[#001b94] focus:outline-none"
             >
               Select File from Device
             </button>
           </div>
 
           {errorMsg && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-medium flex items-center gap-2.5">
+            <div className="p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-xl text-red-700 dark:text-red-300 text-xs font-medium flex items-center gap-2.5">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {/* Secondary Action: Try Sample Script */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white rounded-xl border border-border">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-card rounded-xl border border-border">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#EBF3FC] border border-[#001b94]/20 flex items-center justify-center text-[#001b94]">
+              <div className="w-10 h-10 rounded-lg bg-[#EBF3FC] dark:bg-sky-950/60 border border-[#001b94]/20 dark:border-sky-800/60 flex items-center justify-center text-[#001b94] dark:text-sky-300">
                 <FileText className="w-5 h-5" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-medium text-[#0F294D]">No script file ready?</p>
-                <p className="text-xs text-[#64748B]">Try our sample screenplay: <span className="font-semibold text-[#001b94]">"{SAMPLE_SCRIPT_TITLE}"</span></p>
+                <p className="text-sm font-medium text-[#0F294D] dark:text-foreground">No script file ready?</p>
+                <p className="text-xs text-[#64748B] dark:text-muted-foreground">Try our sample screenplay: <span className="font-semibold text-[#001b94] dark:text-sky-400">"{SAMPLE_SCRIPT_TITLE}"</span></p>
               </div>
             </div>
             <button
@@ -176,8 +176,8 @@ export const DragDropUploader: React.FC<DragDropUploaderProps> = ({
           </div>
 
           {/* Privacy Disclaimer */}
-          <div className="flex items-center justify-center gap-2 text-xs text-[#64748B] pt-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <div className="flex items-center justify-center gap-2 text-xs text-[#64748B] dark:text-muted-foreground pt-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span>Privacy Guarantee: Your file is processed locally for this session only and is never stored unless explicitly saved.</span>
           </div>
         </div>

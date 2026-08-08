@@ -60,16 +60,16 @@ export const SummaryExport: React.FC<SummaryExportProps> = ({
     <div className="space-y-8 font-sans">
       {/* Top Banner: Success Header */}
       <div className="bg-card rounded-xl border border-border p-6 md:p-8 space-y-3 relative overflow-hidden">
-        <div className="flex items-center gap-2 text-emerald-800 font-semibold text-xs uppercase tracking-wider">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+        <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-400 font-semibold text-xs uppercase tracking-wider">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <span>Development Packet Compiled</span>
         </div>
-        <h2 className="text-3xl font-normal font-display text-[#0F294D]">
+        <h2 className="text-3xl font-normal font-display text-[#0F294D] dark:text-foreground">
           Executive Summary & Production Export
         </h2>
-        <p className="text-xs text-[#64748B] max-w-2xl font-medium">
-          Your project <span className="font-semibold text-[#001b94]">"{fileName}"</span> has been refined to{" "}
-          <span className="font-semibold text-emerald-800">{versionTag}</span>. Download your complete coverage deck and script package below.
+        <p className="text-xs text-[#64748B] dark:text-muted-foreground max-w-2xl font-medium">
+          Your project <span className="font-semibold text-[#001b94] dark:text-sky-400">"{fileName}"</span> has been refined to{" "}
+          <span className="font-semibold text-emerald-800 dark:text-emerald-400">{versionTag}</span>. Download your complete coverage deck and script package below.
         </p>
       </div>
 
@@ -78,24 +78,24 @@ export const SummaryExport: React.FC<SummaryExportProps> = ({
         {/* Tile 1: Accepted Improvements */}
         <div className="bg-card rounded-xl border border-border p-6 space-y-3">
           <div className="flex items-center justify-between border-b border-border pb-3">
-            <div className="flex items-center gap-2 font-medium text-[#0F294D]">
+            <div className="flex items-center gap-2 font-medium text-[#0F294D] dark:text-foreground">
               <Sparkles className="w-5 h-5 text-[#FF6F00]" />
               <h3 className="font-display">Accepted Improvements</h3>
             </div>
-            <span className="text-xs font-semibold text-[#001b94] bg-[#EBF3FC] px-2.5 py-0.5 rounded-full border border-[#001b94]/20">
+            <span className="text-xs font-semibold text-[#001b94] dark:text-sky-300 bg-[#EBF3FC] dark:bg-sky-950/60 px-2.5 py-0.5 rounded-full border border-[#001b94]/20 dark:border-sky-800/60">
               {appliedImprovements.length} Applied
             </span>
           </div>
 
           {appliedImprovements.length === 0 ? (
-            <p className="text-xs text-[#64748B] italic py-2">No rewrites applied in this pass. Original script preserved.</p>
+            <p className="text-xs text-[#64748B] dark:text-muted-foreground italic py-2">No rewrites applied in this pass. Original script preserved.</p>
           ) : (
             <ul className="space-y-2">
               {appliedImprovements.map((imp) => (
-                <li key={imp.id} className="text-xs text-[#334155] flex items-start gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <li key={imp.id} className="text-xs text-[#334155] dark:text-slate-300 flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
                   <span>
-                    <strong className="text-[#0F294D]">{imp.title}:</strong> {imp.sceneLocation} ({imp.pageRange})
+                    <strong className="text-[#0F294D] dark:text-foreground">{imp.title}:</strong> {imp.sceneLocation} ({imp.pageRange})
                   </span>
                 </li>
               ))}
@@ -106,11 +106,11 @@ export const SummaryExport: React.FC<SummaryExportProps> = ({
         {/* Tile 2: Cast Shortlist */}
         <div className="bg-card rounded-xl border border-border p-6 space-y-3">
           <div className="flex items-center justify-between border-b border-border pb-3">
-            <div className="flex items-center gap-2 font-medium text-[#0F294D]">
-              <Users className="w-5 h-5 text-[#001b94]" />
+            <div className="flex items-center gap-2 font-medium text-[#0F294D] dark:text-foreground">
+              <Users className="w-5 h-5 text-[#001b94] dark:text-sky-400" />
               <h3 className="font-display">Talent Attachment Shortlist</h3>
             </div>
-            <span className="text-xs font-semibold text-[#64748B] bg-slate-100 px-2.5 py-0.5 rounded-full">
+            <span className="text-xs font-semibold text-[#64748B] dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full">
               {casting.length} Roles
             </span>
           </div>
@@ -119,9 +119,9 @@ export const SummaryExport: React.FC<SummaryExportProps> = ({
             {casting.map((role) => {
               const actor = shortlistedActors[role.id] || role.selectedActor;
               return (
-                <div key={role.id} className="flex items-center justify-between text-xs py-1 border-b border-slate-100 last:border-0">
-                  <span className="font-medium text-[#0F294D]">{role.roleName.split("(")[0]}</span>
-                  <span className="font-semibold text-[#001b94] bg-[#EBF3FC] px-2.5 py-1 rounded border border-[#001b94]/20">
+                <div key={role.id} className="flex items-center justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-800 last:border-0">
+                  <span className="font-medium text-[#0F294D] dark:text-foreground">{role.roleName.split("(")[0]}</span>
+                  <span className="font-semibold text-[#001b94] dark:text-sky-300 bg-[#EBF3FC] dark:bg-sky-950/60 px-2.5 py-1 rounded border border-[#001b94]/20 dark:border-sky-800/60">
                     {actor}
                   </span>
                 </div>
@@ -133,20 +133,20 @@ export const SummaryExport: React.FC<SummaryExportProps> = ({
         {/* Tile 3: Budget Range */}
         <div className="bg-card rounded-xl border border-border p-6 space-y-3">
           <div className="flex items-center justify-between border-b border-border pb-3">
-            <div className="flex items-center gap-2 font-medium text-[#0F294D]">
-              <DollarSign className="w-5 h-5 text-emerald-600" />
+            <div className="flex items-center gap-2 font-medium text-[#0F294D] dark:text-foreground">
+              <DollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               <h3 className="font-display">Budget Range & Tier</h3>
             </div>
-            <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+            <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/60">
               {budgetTier} Tier
             </span>
           </div>
 
           <div className="space-y-1">
-            <div className="text-2xl font-bold text-[#0F294D]">
+            <div className="text-2xl font-bold text-[#0F294D] dark:text-foreground">
               {formatCurrency(totals.low)} – {formatCurrency(totals.high)}
             </div>
-            <p className="text-xs text-[#64748B]">
+            <p className="text-xs text-[#64748B] dark:text-muted-foreground">
               Includes talent fees, LED volume stage time, crew HODs, VFX post, and 10% contingency reserve.
             </p>
           </div>
@@ -155,23 +155,23 @@ export const SummaryExport: React.FC<SummaryExportProps> = ({
         {/* Tile 4: Pinned Locations */}
         <div className="bg-card rounded-xl border border-border p-6 space-y-3">
           <div className="flex items-center justify-between border-b border-border pb-3">
-            <div className="flex items-center gap-2 font-medium text-[#0F294D]">
-              <MapPin className="w-5 h-5 text-[#001b94]" />
+            <div className="flex items-center gap-2 font-medium text-[#0F294D] dark:text-foreground">
+              <MapPin className="w-5 h-5 text-[#001b94] dark:text-sky-400" />
               <h3 className="font-display">Pinned Filming Locations</h3>
             </div>
-            <span className="text-xs font-semibold text-[#001b94] bg-[#EBF3FC] px-2.5 py-0.5 rounded-full border border-[#001b94]/20">
+            <span className="text-xs font-semibold text-[#001b94] dark:text-sky-300 bg-[#EBF3FC] dark:bg-sky-950/60 px-2.5 py-0.5 rounded-full border border-[#001b94]/20 dark:border-sky-800/60">
               {pinnedLocations.length} Hubs
             </span>
           </div>
 
           {pinnedLocations.length === 0 ? (
-            <p className="text-xs text-[#64748B] italic py-2">No location hubs pinned.</p>
+            <p className="text-xs text-[#64748B] dark:text-muted-foreground italic py-2">No location hubs pinned.</p>
           ) : (
             <div className="space-y-2">
               {pinnedLocations.map((loc) => (
-                <div key={loc.id} className="text-xs text-[#334155] flex items-center justify-between">
-                  <span className="font-medium text-[#0F294D]">{loc.region}</span>
-                  <span className="text-[11px] font-semibold text-[#001b94] bg-[#EBF3FC] px-2 py-0.5 rounded border border-[#001b94]/20">
+                <div key={loc.id} className="text-xs text-[#334155] dark:text-slate-300 flex items-center justify-between">
+                  <span className="font-medium text-[#0F294D] dark:text-foreground">{loc.region}</span>
+                  <span className="text-[11px] font-semibold text-[#001b94] dark:text-sky-300 bg-[#EBF3FC] dark:bg-sky-950/60 px-2 py-0.5 rounded border border-[#001b94]/20 dark:border-sky-800/60">
                     {loc.taxIncentive}
                   </span>
                 </div>
@@ -182,7 +182,7 @@ export const SummaryExport: React.FC<SummaryExportProps> = ({
       </div>
 
       {/* Export Options Card */}
-      <div className="bg-[#001b94] text-white rounded-xl p-6 md:p-8 space-y-6">
+      <div className="bg-[#001b94] dark:bg-[#001470] text-white rounded-xl p-6 md:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/20 pb-4">
           <div>
             <h3 className="text-xl font-normal font-display text-white">Export Package Deliverables</h3>
@@ -259,7 +259,7 @@ export const SummaryExport: React.FC<SummaryExportProps> = ({
         <button
           type="button"
           onClick={onReset}
-          className="px-6 py-2.5 bg-white hover:bg-slate-50 text-[#0F294D] border border-border font-medium text-xs rounded-lg transition-colors"
+          className="px-6 py-2.5 bg-card hover:bg-slate-100 dark:hover:bg-slate-800 text-[#0F294D] dark:text-foreground border border-border font-medium text-xs rounded-lg transition-colors"
         >
           Review Another Screenplay
         </button>
