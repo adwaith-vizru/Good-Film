@@ -25,7 +25,7 @@ import { DiffModal } from "./DiffModal";
 
 export const ReelRefineStudio: React.FC = () => {
   // Navigation & Project State
-  const [activeTab, setActiveTab] = useState<StudioTabId>("snapshot");
+  const [activeTab, setActiveTab] = useState<StudioTabId>("upload");
   const [currentProject, setCurrentProject] = useState<ProjectOption>(SAMPLE_PROJECTS[0]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [scriptReaderOpen, setScriptReaderOpen] = useState<boolean>(false);
@@ -140,7 +140,7 @@ export const ReelRefineStudio: React.FC = () => {
   };
 
   const handleReset = () => {
-    setActiveTab("snapshot");
+    setActiveTab("upload");
     setImprovements(INITIAL_IMPROVEMENTS);
     setShortlistedActors({ "role-1": "Gemma Chan", "role-2": "Dev Patel" });
     setPinnedLocationIds(["loc-1", "loc-2"]);
