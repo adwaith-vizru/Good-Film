@@ -1,5 +1,4 @@
-@import "tailwindcss" source(none);
-@source "../src";
+@import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
@@ -46,6 +45,23 @@
   --navy-end: #003399;
   --shadow-card: none;
   --shadow-hover: none;
+}
+
+.dark {
+  --background: #090D16;
+  --foreground: #F8FAFC;
+  --card: #0F172A;
+  --card-foreground: #F8FAFC;
+  --primary: #38BDF8;
+  --primary-foreground: #0F172A;
+  --accent: #FF6F00;
+  --accent-foreground: #FFFFFF;
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+  --text-secondary: #CBD5E1;
+  --border: #1E293B;
+  --navy-start: #0B132B;
+  --navy-end: #1C2541;
 }
 
 @layer base {
