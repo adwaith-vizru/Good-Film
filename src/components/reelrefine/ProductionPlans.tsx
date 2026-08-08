@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   Users,
   DollarSign,
@@ -15,6 +15,10 @@ import {
   Globe,
   X,
   CheckCircle2,
+  Trash2,
+  Edit3,
+  Zap,
+  TrendingUp,
 } from "lucide-react";
 import {
   CastRole,
@@ -22,6 +26,9 @@ import {
   LocationOption,
   BUDGET_CATEGORIES,
   GLOBAL_LOCATION_DATABASE,
+  AI_ACTOR_DATABASE,
+  ActorSearchEntry,
+  getAIBudgetSuggestions,
 } from "./reelRefineData";
 
 interface ProductionPlansProps {
@@ -36,6 +43,13 @@ interface ProductionPlansProps {
   onAddLocation?: (newLoc: LocationOption) => void;
   onNext: () => void;
   onBack: () => void;
+}
+
+// Custom budget overrides by category
+interface BudgetOverride {
+  category: string;
+  low: number;
+  high: number;
 }
 
 export const ProductionPlans: React.FC<ProductionPlansProps> = ({
@@ -61,6 +75,27 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
   // Search Bar 2: Search & Add new global hub location
   const [newLocationQuery, setNewLocationQuery] = useState("");
   const [isAddDropdownOpen, setIsAddDropdownOpen] = useState(false);
+
+  // Cast Search Modal State
+  const [castModalOpen, setCastModalOpen] = useState(false);
+  const [castModalRoleId, setCastModalRoleId] = useState<string | null>(null);
+  const [castSearchQuery, setCastSearchQuery] = useState("");
+
+  // Selected Role State for Card A Single Viewport
+  const [selectedRoleId, setSelectedRoleId] = useState<string>(casting[0]?.id || "role-1");
+
+  const activeRole = useMemo(() => {
+    return casting.find((r) => r.id === selectedRoleId) || casting[0] || null;
+  }, [casting, selectedRoleId]);
+
+  // Budget Entry Modal State
+  const [budgetModalOpen, setBudgetModalOpen] = useState(false);
+  const [budgetOverrides, setBudgetOverrides] = useState<BudgetOverride[]>([]);
+  const [tempBudgetEdits, setTempBudgetEdits] = useState<Record<string, { low: string; high: string }>>({});
+
+  // Refs for modal overlay close
+  const castModalRef = useRef<HTMLDivElement>(null);
+  const budgetModalRef = useRef<HTMLDivElement>(null);
 
   // Compute shortlisted actor details & budget impact
   const shortlistedCast = casting.map((role) => {
@@ -92,6 +127,16 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
     }
   });
 
+  // Calculate cast budget for auto-population
+  const castBaseTier = budgetTier === "Micro"
+    ? BUDGET_CATEGORIES.find((c) => c.category === "Talent & Cast")?.micro
+    : budgetTier === "Indie"
+    ? BUDGET_CATEGORIES.find((c) => c.category === "Talent & Cast")?.indie
+    : BUDGET_CATEGORIES.find((c) => c.category === "Talent & Cast")?.studio;
+
+  const castBudgetLow = Math.max(30, (castBaseTier?.low || 220) + talentLowDelta);
+  const castBudgetHigh = Math.max(60, (castBaseTier?.high || 450) + talentHighDelta);
+
   const calculateTotal = () => {
     let lowSum = 0;
     let highSum = 0;
@@ -109,9 +154,17 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
         baseHigh = cat.studio.high;
       }
 
+      // Apply cast budget adjustment
       if (cat.category === "Talent & Cast") {
-        baseLow = Math.max(30, baseLow + talentLowDelta);
-        baseHigh = Math.max(60, baseHigh + talentHighDelta);
+        baseLow = castBudgetLow;
+        baseHigh = castBudgetHigh;
+      }
+
+      // Apply user overrides if any
+      const override = budgetOverrides.find((o) => o.category === cat.category);
+      if (override) {
+        baseLow = override.low;
+        baseHigh = override.high;
       }
 
       lowSum += baseLow;
@@ -125,6 +178,12 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
     if (val >= 1000) return `$${(val / 1000).toFixed(1)}M`;
     return `$${val}K`;
   };
+
+  // AI Budget Suggestions
+  const aiBudgetSuggestions = useMemo(
+    () => getAIBudgetSuggestions(budgetTier, castBudgetLow, castBudgetHigh),
+    [budgetTier, castBudgetLow, castBudgetHigh]
+  );
 
   // Filter existing dashboard locations (Search Bar 1)
   const filteredDashboardLocations = locations.filter((loc) => {
@@ -181,6 +240,104 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
     setIsAddDropdownOpen(false);
   };
 
+  // Cast Search Modal — filter actors
+  const castSearchResults = useMemo(() => {
+    if (!castSearchQuery.trim()) return AI_ACTOR_DATABASE.slice(0, 8);
+    const q = castSearchQuery.toLowerCase();
+    return AI_ACTOR_DATABASE.filter(
+      (a) =>
+        a.name.toLowerCase().includes(q) ||
+        a.knownFor.toLowerCase().includes(q) ||
+        a.genre.toLowerCase().includes(q)
+    );
+  }, [castSearchQuery]);
+
+  // Get AI suggested actor for a given role
+  const getAISuggestedActor = (roleId: string): ActorSearchEntry | null => {
+    const role = casting.find((r) => r.id === roleId);
+    if (!role) return null;
+    // Pick top fit score actor from database not already selected
+    const currentlySelected = shortlistedActors[roleId] || role.selectedActor;
+    const sorted = [...AI_ACTOR_DATABASE]
+      .filter((a) => a.name !== currentlySelected)
+      .sort((a, b) => b.fitScore - a.fitScore);
+    return sorted[0] || null;
+  };
+
+  // Open cast modal for a specific role
+  const handleOpenCastModal = (roleId: string) => {
+    setCastModalRoleId(roleId);
+    setCastSearchQuery("");
+    setCastModalOpen(true);
+  };
+
+  // Select actor from modal
+  const handleSelectActorFromModal = (actorName: string) => {
+    if (castModalRoleId) {
+      onToggleActorShortlist(castModalRoleId, actorName);
+    }
+    setCastModalOpen(false);
+    setCastModalRoleId(null);
+  };
+
+  // Open budget modal
+  const handleOpenBudgetModal = () => {
+    // Pre-fill temp edits from current overrides or defaults
+    const edits: Record<string, { low: string; high: string }> = {};
+    BUDGET_CATEGORIES.forEach((cat) => {
+      const override = budgetOverrides.find((o) => o.category === cat.category);
+      const defaults = budgetTier === "Micro" ? cat.micro : budgetTier === "Indie" ? cat.indie : cat.studio;
+      if (cat.category === "Talent & Cast") {
+        edits[cat.category] = {
+          low: String(castBudgetLow),
+          high: String(castBudgetHigh),
+        };
+      } else {
+        edits[cat.category] = {
+          low: String(override?.low ?? defaults.low),
+          high: String(override?.high ?? defaults.high),
+        };
+      }
+    });
+    setTempBudgetEdits(edits);
+    setBudgetModalOpen(true);
+  };
+
+  // Save budget overrides from modal
+  const handleSaveBudgetOverrides = () => {
+    const newOverrides: BudgetOverride[] = [];
+    Object.entries(tempBudgetEdits).forEach(([category, vals]) => {
+      if (category === "Talent & Cast") return; // auto from cast
+      const low = parseInt(vals.low) || 0;
+      const high = parseInt(vals.high) || 0;
+      newOverrides.push({ category, low, high });
+    });
+    setBudgetOverrides(newOverrides);
+    setBudgetModalOpen(false);
+  };
+
+  // Apply AI suggestion to budget
+  const handleApplyAISuggestion = (category: string, low: number, high: number) => {
+    setTempBudgetEdits((prev) => ({
+      ...prev,
+      [category]: { low: String(low), high: String(high) },
+    }));
+  };
+
+  // Close modal on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (castModalOpen && castModalRef.current && !castModalRef.current.contains(e.target as Node)) {
+        setCastModalOpen(false);
+      }
+      if (budgetModalOpen && budgetModalRef.current && !budgetModalRef.current.contains(e.target as Node)) {
+        setBudgetModalOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [castModalOpen, budgetModalOpen]);
+
   return (
     <div className="space-y-8 font-sans">
       {/* Step Header */}
@@ -203,7 +360,9 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
         </div>
       </div>
 
-      {/* CARD A: CASTING */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* CARD A: CASTING — WITH ADD BUTTON & SEARCH POPUP */}
+      {/* ═══════════════════════════════════════════════════════════ */}
       <div className="bg-card rounded-xl border border-border p-6 md:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
           <div className="flex items-center gap-3">
@@ -237,96 +396,398 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
           </div>
         </div>
 
-        {/* Roles List */}
-        <div className="space-y-6">
-          {casting.map((role) => {
-            const currentSelected = shortlistedActors[role.id] || role.selectedActor;
-            return (
-              <div key={role.id} className="space-y-3 bg-[#F8FAFC] dark:bg-slate-900/50 p-4 md:p-5 rounded-xl border border-border">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <h4 className="text-base font-medium text-[#0F294D] dark:text-foreground">{role.roleName}</h4>
-                    <p className="text-xs text-[#64748B] dark:text-muted-foreground">
-                      Age Range: <span className="font-medium text-[#0F294D] dark:text-foreground">{role.ageRange}</span> • Vibe:{" "}
-                      <span className="italic text-[#334155] dark:text-slate-300">{role.vibe}</span>
-                    </p>
+        {/* Role Selector Dropdown Bar placed just above Add Cast */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-[#F8FAFC] dark:bg-slate-900/60 rounded-xl border border-border">
+          <div className="flex-1 space-y-1.5 min-w-0">
+            <label className="text-xs font-semibold text-[#0F294D] dark:text-foreground flex items-center gap-1.5 uppercase tracking-wider font-mono">
+              <Users className="w-4 h-4 text-[#001b94] dark:text-sky-400" /> Select Script Character Role:
+            </label>
+            <div className="relative max-w-lg">
+              <select
+                value={activeRole?.id || ""}
+                onChange={(e) => setSelectedRoleId(e.target.value)}
+                className="w-full pl-3.5 pr-10 py-2.5 bg-background border border-border rounded-xl text-xs sm:text-sm font-medium text-[#0F294D] dark:text-foreground focus:outline-none focus:ring-2 focus:ring-[#001b94] dark:focus:ring-sky-400 cursor-pointer appearance-none shadow-sm truncate"
+              >
+                {casting.map((role) => {
+                  const assigned = shortlistedActors[role.id] || role.selectedActor;
+                  return (
+                    <option key={role.id} value={role.id}>
+                      {role.roleName} ({role.ageRange}) {assigned ? `• Assigned: ${assigned}` : "• Unassigned"}
+                    </option>
+                  );
+                })}
+              </select>
+              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* + Add Cast Button */}
+          {activeRole && (
+            <div className="flex items-center gap-2 self-start sm:self-end pt-1 sm:pt-0">
+              <button
+                type="button"
+                onClick={() => handleOpenCastModal(activeRole.id)}
+                className="px-4 py-2.5 bg-[#001b94] dark:bg-sky-600 hover:bg-[#001470] dark:hover:bg-sky-500 text-white text-xs font-semibold uppercase tracking-wider rounded-xl transition-all flex items-center gap-1.5 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex-shrink-0"
+              >
+                <Plus className="w-4 h-4" /> Add Cast
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Active Selected Role Details & Cards Viewport */}
+        {activeRole && (() => {
+          const currentSelected = shortlistedActors[activeRole.id] || activeRole.selectedActor;
+          const aiSuggested = getAISuggestedActor(activeRole.id);
+
+          return (
+            <div className="space-y-4">
+              {/* Active Role Meta Card */}
+              <div className="p-4 bg-[#F8FAFC] dark:bg-slate-900/50 rounded-xl border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-base font-semibold text-[#0F294D] dark:text-foreground">{activeRole.roleName}</h4>
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#001b94]/10 dark:bg-sky-500/20 text-[#001b94] dark:text-sky-300 border border-[#001b94]/20 dark:border-sky-800/50">
+                      Role {casting.findIndex((r) => r.id === activeRole.id) + 1} of {casting.length}
+                    </span>
                   </div>
+                  <p className="text-xs text-[#64748B] dark:text-muted-foreground mt-0.5">
+                    Age Range: <span className="font-medium text-[#0F294D] dark:text-foreground">{activeRole.ageRange}</span> • Vibe:{" "}
+                    <span className="italic text-[#334155] dark:text-slate-300">{activeRole.vibe}</span>
+                  </p>
                 </div>
 
-                {/* Actor Suggestions Grid */}
-                <div className="grid md:grid-cols-3 gap-3 pt-1">
-                  {role.actorOptions.map((actor) => {
-                    const isSelected = currentSelected === actor.name;
-                    return (
-                      <div
-                        key={actor.name}
-                        className={`p-4 rounded-xl border transition-all flex flex-col justify-between space-y-3 bg-card ${
-                          isSelected
-                            ? "border-[#001b94] dark:border-sky-400 ring-2 ring-[#001b94]/20 dark:ring-sky-400/20"
-                            : "border-border hover:border-slate-300 dark:hover:border-slate-700"
-                        }`}
-                      >
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="w-8 h-8 rounded-full bg-[#001b94] dark:bg-sky-600 text-white font-semibold text-xs flex items-center justify-center">
-                              {actor.imageTag}
-                            </span>
-                            <span className="text-xs font-semibold text-[#001b94] dark:text-sky-300 bg-[#EBF3FC] dark:bg-sky-950/60 px-2 py-0.5 rounded border border-[#001b94]/20 dark:border-sky-800/60 flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-[#FF6F00] text-[#FF6F00]" /> {actor.fitScore}% Fit
-                            </span>
-                          </div>
-                          <div>
-                            <h5 className="font-medium text-[#0F294D] dark:text-foreground text-sm">{actor.name}</h5>
-                            <p className="text-xs text-[#64748B] dark:text-muted-foreground line-clamp-1">{actor.knownFor}</p>
-                          </div>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-[11px] font-medium text-[#64748B] dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
-                              Star Power: {actor.starPowerScore}%
-                            </span>
-                            <span
-                              className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
-                                actor.budgetImpact === "High"
-                                  ? "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300"
-                                  : actor.budgetImpact === "Low"
-                                  ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
-                                  : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300"
-                              }`}
-                            >
-                              Impact: {actor.budgetImpact}
-                            </span>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => onToggleActorShortlist(role.id, actor.name)}
-                          className={`w-full py-2 px-3 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                            isSelected
-                              ? "bg-[#001b94] dark:bg-sky-600 text-white"
-                              : "bg-[#F1F5F9] dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#0F294D] dark:text-slate-200"
-                          }`}
-                        >
-                          {isSelected ? (
-                            <>
-                              <Check className="w-3.5 h-3.5" /> Shortlisted
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="w-3.5 h-3.5" /> Add to Shortlist
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    );
-                  })}
+                <div className="text-left sm:text-right flex-shrink-0">
+                  <span className="text-xs font-semibold text-[#001b94] dark:text-sky-300 bg-[#EBF3FC] dark:bg-sky-950/60 px-3 py-1.5 rounded-lg border border-[#001b94]/20 dark:border-sky-800/60 block">
+                    Shortlisted: <strong className="text-[#0F294D] dark:text-foreground ml-1">{currentSelected || "None Selected"}</strong>
+                  </span>
                 </div>
               </div>
-            );
-          })}
+
+              {/* Actor Suggestions Grid for Active Role */}
+              <div className="grid md:grid-cols-3 gap-3 pt-1">
+                {/* AI Suggested Cast Card */}
+                {aiSuggested && (
+                  <div className="p-4 rounded-xl border-2 border-[#FF6F00]/40 bg-gradient-to-br from-[#FF6F00]/5 via-amber-50/40 to-orange-50/30 dark:from-[#FF6F00]/10 dark:via-amber-950/30 dark:to-orange-950/20 transition-all flex flex-col justify-between space-y-3 relative overflow-hidden group hover:border-[#FF6F00]/60 hover:shadow-lg">
+                    <div className="absolute top-0 right-0 px-2.5 py-1 bg-gradient-to-r from-[#FF6F00] to-amber-500 text-white text-[9px] font-bold uppercase tracking-widest rounded-bl-lg flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" /> AI Pick
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF6F00] to-amber-500 text-white font-semibold text-xs flex items-center justify-center shadow-md">
+                          {aiSuggested.imageTag}
+                        </span>
+                        <span className="text-xs font-semibold text-[#FF6F00] bg-[#FF6F00]/10 px-2 py-0.5 rounded border border-[#FF6F00]/20 flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-[#FF6F00] text-[#FF6F00]" /> {aiSuggested.fitScore}% Fit
+                        </span>
+                      </div>
+                      <div>
+                        <h5 className="font-medium text-[#0F294D] dark:text-foreground text-sm">{aiSuggested.name}</h5>
+                        <p className="text-xs text-[#64748B] dark:text-muted-foreground line-clamp-1">{aiSuggested.knownFor}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[11px] font-medium text-[#64748B] dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                          Star Power: {aiSuggested.starPowerScore}%
+                        </span>
+                        <span
+                          className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
+                            aiSuggested.budgetImpact === "High"
+                              ? "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300"
+                              : aiSuggested.budgetImpact === "Low"
+                              ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
+                              : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300"
+                          }`}
+                        >
+                          Impact: {aiSuggested.budgetImpact}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => onToggleActorShortlist(activeRole.id, aiSuggested.name)}
+                      className="w-full py-2 px-3 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#FF6F00] to-amber-500 hover:from-[#e06200] hover:to-amber-600 text-white shadow-md hover:shadow-lg"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" /> Use AI Suggestion
+                    </button>
+                  </div>
+                )}
+
+                {/* Existing Actor Options for Active Role */}
+                {activeRole.actorOptions.map((actor) => {
+                  const isSelected = currentSelected === actor.name;
+                  return (
+                    <div
+                      key={actor.name}
+                      className={`p-4 rounded-xl border transition-all flex flex-col justify-between space-y-3 bg-card ${
+                        isSelected
+                          ? "border-[#001b94] dark:border-sky-400 ring-2 ring-[#001b94]/20 dark:ring-sky-400/20"
+                          : "border-border hover:border-slate-300 dark:hover:border-slate-700"
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="w-8 h-8 rounded-full bg-[#001b94] dark:bg-sky-600 text-white font-semibold text-xs flex items-center justify-center">
+                            {actor.imageTag}
+                          </span>
+                          <span className="text-xs font-semibold text-[#001b94] dark:text-sky-300 bg-[#EBF3FC] dark:bg-sky-950/60 px-2 py-0.5 rounded border border-[#001b94]/20 dark:border-sky-800/60 flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-[#FF6F00] text-[#FF6F00]" /> {actor.fitScore}% Fit
+                          </span>
+                        </div>
+                        <div>
+                          <h5 className="font-medium text-[#0F294D] dark:text-foreground text-sm">{actor.name}</h5>
+                          <p className="text-xs text-[#64748B] dark:text-muted-foreground line-clamp-1">{actor.knownFor}</p>
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[11px] font-medium text-[#64748B] dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                            Star Power: {actor.starPowerScore}%
+                          </span>
+                          <span
+                            className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
+                              actor.budgetImpact === "High"
+                                ? "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300"
+                                : actor.budgetImpact === "Low"
+                                ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
+                                : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300"
+                            }`}
+                          >
+                            Impact: {actor.budgetImpact}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => onToggleActorShortlist(activeRole.id, actor.name)}
+                        className={`w-full py-2 px-3 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                          isSelected
+                            ? "bg-[#001b94] dark:bg-sky-600 text-white"
+                            : "bg-[#F1F5F9] dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#0F294D] dark:text-slate-200"
+                        }`}
+                      >
+                        {isSelected ? (
+                          <>
+                            <Check className="w-3.5 h-3.5" /> Shortlisted
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-3.5 h-3.5" /> Add to Shortlist
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* All Script Cast Quick Navigation Bar */}
+        <div className="p-3 bg-[#F8FAFC] dark:bg-slate-900/40 rounded-xl border border-border flex flex-wrap items-center justify-between gap-2 text-xs">
+          <span className="font-semibold text-[#64748B] dark:text-muted-foreground font-mono uppercase text-[10px]">
+            Script Roles ({casting.length}):
+          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            {casting.map((role) => {
+              const assigned = shortlistedActors[role.id] || role.selectedActor;
+              const isCurrent = role.id === activeRole?.id;
+              return (
+                <button
+                  key={role.id}
+                  type="button"
+                  onClick={() => setSelectedRoleId(role.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+                    isCurrent
+                      ? "bg-[#001b94] dark:bg-sky-600 text-white shadow-sm font-semibold"
+                      : "bg-background hover:bg-slate-200 dark:hover:bg-slate-800 text-[#0F294D] dark:text-foreground border border-border"
+                  }`}
+                >
+                  <span>{role.roleName.split(" ")[0]}</span>
+                  {assigned && (
+                    <span className={`text-[10px] ${isCurrent ? "text-sky-200" : "text-[#001b94] dark:text-sky-400 font-semibold"}`}>
+                      ({assigned})
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* CARD B: BUDGET */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/* CAST SEARCH MODAL (POPUP OVERLAY) */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {castModalOpen && castModalRoleId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div
+            ref={castModalRef}
+            className="bg-card rounded-2xl border border-border shadow-2xl w-full max-w-2xl mx-4 max-h-[85vh] overflow-hidden flex flex-col animate-scale-in"
+          >
+            {/* Modal Header */}
+            <div className="p-5 border-b border-border bg-gradient-to-r from-[#001b94]/5 to-[#FF6F00]/5 dark:from-sky-950/30 dark:to-amber-950/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#001b94] dark:bg-sky-600 text-white flex items-center justify-center">
+                    <Users className="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-[#0F294D] dark:text-foreground">Search & Add Cast</h3>
+                    <p className="text-xs text-[#64748B] dark:text-muted-foreground">
+                      For: <span className="font-semibold text-[#001b94] dark:text-sky-300">{casting.find((r) => r.id === castModalRoleId)?.roleName}</span>
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCastModalOpen(false)}
+                  className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative mt-4">
+                <input
+                  type="text"
+                  value={castSearchQuery}
+                  onChange={(e) => setCastSearchQuery(e.target.value)}
+                  placeholder="Search actors by name, known films, or genre..."
+                  className="w-full pl-10 pr-10 py-2.5 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#001b94] dark:focus:ring-sky-400 font-medium text-foreground"
+                  autoFocus
+                />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                {castSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setCastSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Body — Results */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-3">
+              {/* AI Suggestion Card — Top of results */}
+              {(() => {
+                const aiPick = getAISuggestedActor(castModalRoleId);
+                if (!aiPick) return null;
+                return (
+                  <div className="p-4 rounded-xl border-2 border-[#FF6F00]/40 bg-gradient-to-r from-[#FF6F00]/5 via-amber-50/30 to-orange-50/20 dark:from-[#FF6F00]/10 dark:via-amber-950/30 dark:to-orange-950/20 flex items-center justify-between gap-4 group hover:border-[#FF6F00]/60 transition-all">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FF6F00] to-amber-500 text-white font-bold text-sm flex items-center justify-center flex-shrink-0 shadow-md">
+                        {aiPick.imageTag}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h5 className="font-semibold text-[#0F294D] dark:text-foreground text-sm truncate">{aiPick.name}</h5>
+                          <span className="px-2 py-0.5 bg-gradient-to-r from-[#FF6F00] to-amber-500 text-white text-[9px] font-bold uppercase tracking-widest rounded-full flex items-center gap-1 flex-shrink-0">
+                            <Sparkles className="w-3 h-3" /> AI Recommended
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#64748B] dark:text-muted-foreground truncate">{aiPick.knownFor}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] font-semibold text-[#001b94] dark:text-sky-300 bg-[#EBF3FC] dark:bg-sky-950/60 px-1.5 py-0.5 rounded">
+                            {aiPick.fitScore}% Fit
+                          </span>
+                          <span className="text-[10px] font-medium text-[#64748B] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                            ★ {aiPick.starPowerScore}%
+                          </span>
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                            aiPick.budgetImpact === "High" ? "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300"
+                            : aiPick.budgetImpact === "Low" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                            : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                          }`}>
+                            {aiPick.budgetImpact} Impact
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleSelectActorFromModal(aiPick.name)}
+                      className="px-4 py-2 bg-gradient-to-r from-[#FF6F00] to-amber-500 hover:from-[#e06200] hover:to-amber-600 text-white text-xs font-semibold uppercase tracking-wider rounded-lg flex items-center gap-1.5 flex-shrink-0 shadow-md hover:shadow-lg transition-all"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" /> Select
+                    </button>
+                  </div>
+                );
+              })()}
+
+              {/* Search Result Actor Cards */}
+              <div className="text-[10px] uppercase font-mono font-semibold text-muted-foreground px-1 pt-2">
+                {castSearchQuery ? `${castSearchResults.length} result(s) for "${castSearchQuery}"` : "Popular actors"}
+              </div>
+              {castSearchResults.map((actor) => {
+                const isAlreadySelected = Object.values(shortlistedActors).includes(actor.name);
+                return (
+                  <div
+                    key={actor.name}
+                    className={`p-3.5 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                      isAlreadySelected
+                        ? "border-[#001b94]/30 dark:border-sky-400/30 bg-[#EBF3FC]/40 dark:bg-sky-950/20"
+                        : "border-border hover:border-slate-300 dark:hover:border-slate-600 bg-card hover:bg-slate-50 dark:hover:bg-slate-900/40"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <span className="w-9 h-9 rounded-full bg-[#001b94] dark:bg-sky-600 text-white font-semibold text-xs flex items-center justify-center flex-shrink-0">
+                        {actor.imageTag}
+                      </span>
+                      <div className="min-w-0">
+                        <h5 className="font-medium text-[#0F294D] dark:text-foreground text-sm truncate">{actor.name}</h5>
+                        <p className="text-xs text-[#64748B] dark:text-muted-foreground truncate">{actor.knownFor}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] font-semibold text-[#001b94] dark:text-sky-300 bg-[#EBF3FC] dark:bg-sky-950/60 px-1.5 py-0.5 rounded">
+                            {actor.fitScore}% Fit
+                          </span>
+                          <span className="text-[10px] font-medium text-[#64748B] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                            ★ {actor.starPowerScore}%
+                          </span>
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                            actor.budgetImpact === "High" ? "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300"
+                            : actor.budgetImpact === "Low" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                            : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                          }`}>
+                            {actor.budgetImpact}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleSelectActorFromModal(actor.name)}
+                      className={`px-3.5 py-2 text-xs font-semibold uppercase tracking-wider rounded-lg flex items-center gap-1.5 flex-shrink-0 transition-all ${
+                        isAlreadySelected
+                          ? "bg-[#001b94] dark:bg-sky-600 text-white"
+                          : "bg-[#F1F5F9] dark:bg-slate-800 hover:bg-[#001b94] dark:hover:bg-sky-600 hover:text-white text-[#0F294D] dark:text-slate-200"
+                      }`}
+                    >
+                      {isAlreadySelected ? <><Check className="w-3.5 h-3.5" /> Selected</> : <><Plus className="w-3.5 h-3.5" /> Select</>}
+                    </button>
+                  </div>
+                );
+              })}
+
+              {castSearchResults.length === 0 && (
+                <div className="text-center py-8 text-sm text-[#64748B] dark:text-muted-foreground">
+                  <Search className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+                  No actors found matching "{castSearchQuery}"
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* CARD B: BUDGET — WITH ADD BUTTON & AI SUGGESTIONS */}
+      {/* ═══════════════════════════════════════════════════════════ */}
       <div className="bg-card rounded-xl border border-border p-6 md:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
           <div className="flex items-center gap-3">
@@ -339,11 +800,22 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
             </div>
           </div>
 
-          <div className="bg-[#EBF3FC] dark:bg-sky-950/60 px-4 py-2 rounded-xl border border-[#001b94]/20 dark:border-sky-800/60">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#001b94] dark:text-sky-300 block">Estimated Range</span>
-            <span className="text-lg font-bold text-[#001b94] dark:text-sky-300">
-              {formatCurrency(totals.low)} – {formatCurrency(totals.high)}
-            </span>
+          <div className="flex items-center gap-3">
+            {/* + Add Budget Item Button */}
+            <button
+              type="button"
+              onClick={handleOpenBudgetModal}
+              className="px-4 py-2 bg-[#001b94] dark:bg-sky-600 hover:bg-[#001470] dark:hover:bg-sky-500 text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Budget Item
+            </button>
+
+            <div className="bg-[#EBF3FC] dark:bg-sky-950/60 px-4 py-2 rounded-xl border border-[#001b94]/20 dark:border-sky-800/60">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#001b94] dark:text-sky-300 block">Estimated Range</span>
+              <span className="text-lg font-bold text-[#001b94] dark:text-sky-300">
+                {formatCurrency(totals.low)} – {formatCurrency(totals.high)}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -388,6 +860,41 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
               >
                 <CheckCircle2 className="w-3 h-3" /> {a.actorName} ({a.impact} Impact)
               </span>
+            ))}
+          </div>
+        </div>
+
+        {/* AI Budget Suggestion Card */}
+        <div className="p-4 rounded-xl border-2 border-[#FF6F00]/30 bg-gradient-to-r from-[#FF6F00]/5 via-amber-50/30 to-orange-50/20 dark:from-[#FF6F00]/10 dark:via-amber-950/30 dark:to-orange-950/20 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF6F00] to-amber-500 text-white flex items-center justify-center shadow-md">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-[#0F294D] dark:text-foreground flex items-center gap-1.5">
+                AI Budget Suggestion
+                <span className="px-2 py-0.5 bg-gradient-to-r from-[#FF6F00] to-amber-500 text-white text-[9px] font-bold uppercase tracking-widest rounded-full">
+                  {budgetTier} Tier
+                </span>
+              </h4>
+              <p className="text-[11px] text-[#64748B] dark:text-muted-foreground">AI-recommended budget breakdown based on your cast & project scope</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {aiBudgetSuggestions.map((s) => (
+              <div key={s.category} className="p-2.5 bg-white/60 dark:bg-slate-900/40 rounded-lg border border-[#FF6F00]/10 dark:border-amber-800/30 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-[#0F294D] dark:text-foreground truncate">{s.category}</span>
+                  {s.category === "Talent & Cast" && (
+                    <span className="text-[9px] px-1.5 py-0.5 bg-[#001b94]/10 dark:bg-sky-500/20 text-[#001b94] dark:text-sky-300 rounded font-bold">AUTO</span>
+                  )}
+                </div>
+                <div className="text-xs font-bold text-[#FF6F00]">
+                  ${s.low}K – ${s.high}K
+                </div>
+                <p className="text-[10px] text-[#64748B] dark:text-muted-foreground line-clamp-2">{s.aiNote}</p>
+              </div>
             ))}
           </div>
         </div>
@@ -440,23 +947,33 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
           {showBudgetBreakdown && (
             <div className="mt-3 bg-[#F8FAFC] dark:bg-slate-900/60 p-4 rounded-xl border border-border space-y-2 animate-fade-in">
               <div className="grid grid-cols-12 text-xs font-semibold text-[#64748B] dark:text-muted-foreground uppercase tracking-wider border-b border-border pb-2">
-                <span className="col-span-6">Category</span>
-                <span className="col-span-3 text-right">Low Est.</span>
-                <span className="col-span-3 text-right">High Est.</span>
+                <span className="col-span-5">Category</span>
+                <span className="col-span-2 text-right">Low Est.</span>
+                <span className="col-span-2 text-right">High Est.</span>
+                <span className="col-span-3 text-right">Source</span>
               </div>
               {BUDGET_CATEGORIES.map((cat) => {
                 let values = budgetTier === "Micro" ? cat.micro : budgetTier === "Indie" ? cat.indie : cat.studio;
                 let lowDisplay = values.low;
                 let highDisplay = values.high;
+                let source = "Default";
 
                 if (cat.category === "Talent & Cast") {
-                  lowDisplay = Math.max(30, lowDisplay + talentLowDelta);
-                  highDisplay = Math.max(60, highDisplay + talentHighDelta);
+                  lowDisplay = castBudgetLow;
+                  highDisplay = castBudgetHigh;
+                  source = "Cast Auto";
+                }
+
+                const override = budgetOverrides.find((o) => o.category === cat.category);
+                if (override) {
+                  lowDisplay = override.low;
+                  highDisplay = override.high;
+                  source = "Custom";
                 }
 
                 return (
                   <div key={cat.category} className="grid grid-cols-12 text-xs text-[#334155] dark:text-slate-300 font-medium py-1">
-                    <span className="col-span-6 flex items-center gap-1.5">
+                    <span className="col-span-5 flex items-center gap-1.5">
                       {cat.category}
                       {cat.category === "Talent & Cast" && (
                         <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#001b94]/10 dark:bg-sky-500/20 text-[#001b94] dark:text-sky-300 font-semibold">
@@ -464,11 +981,26 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
                         </span>
                       )}
                     </span>
-                    <span className="col-span-3 text-right text-[#0F294D] dark:text-foreground">${lowDisplay}K</span>
-                    <span className="col-span-3 text-right text-[#0F294D] dark:text-foreground">${highDisplay}K</span>
+                    <span className="col-span-2 text-right text-[#0F294D] dark:text-foreground">${lowDisplay}K</span>
+                    <span className="col-span-2 text-right text-[#0F294D] dark:text-foreground">${highDisplay}K</span>
+                    <span className={`col-span-3 text-right text-[10px] font-semibold ${
+                      source === "Cast Auto" ? "text-[#001b94] dark:text-sky-300" 
+                      : source === "Custom" ? "text-[#FF6F00]" 
+                      : "text-[#64748B] dark:text-muted-foreground"
+                    }`}>
+                      {source}
+                    </span>
                   </div>
                 );
               })}
+
+              {/* Totals row */}
+              <div className="grid grid-cols-12 text-xs font-bold text-[#0F294D] dark:text-foreground py-2 border-t border-border mt-1">
+                <span className="col-span-5">TOTAL</span>
+                <span className="col-span-2 text-right text-[#001b94] dark:text-sky-300">{formatCurrency(totals.low)}</span>
+                <span className="col-span-2 text-right text-[#001b94] dark:text-sky-300">{formatCurrency(totals.high)}</span>
+                <span className="col-span-3"></span>
+              </div>
             </div>
           )}
         </div>
@@ -477,6 +1009,162 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
           Note: Illustrative ranges for preliminary development only; refine line items with your line producer.
         </p>
       </div>
+
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/* BUDGET ENTRY MODAL (POPUP OVERLAY) */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {budgetModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div
+            ref={budgetModalRef}
+            className="bg-card rounded-2xl border border-border shadow-2xl w-full max-w-3xl mx-4 max-h-[85vh] overflow-hidden flex flex-col animate-scale-in"
+          >
+            {/* Modal Header */}
+            <div className="p-5 border-b border-border bg-gradient-to-r from-[#001b94]/5 to-emerald-500/5 dark:from-sky-950/30 dark:to-emerald-950/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#001b94] dark:bg-sky-600 text-white flex items-center justify-center">
+                    <DollarSign className="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-[#0F294D] dark:text-foreground">Add / Edit Budget Items</h3>
+                    <p className="text-xs text-[#64748B] dark:text-muted-foreground">
+                      Set custom budget values for each category. Tier: <span className="font-semibold text-[#001b94] dark:text-sky-300">{budgetTier}</span>
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBudgetModalOpen(false)}
+                  className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body — Budget Fields */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              {/* AI Suggestion Banner */}
+              <div className="p-3 rounded-xl border border-[#FF6F00]/30 bg-gradient-to-r from-[#FF6F00]/5 to-amber-50/30 dark:from-[#FF6F00]/10 dark:to-amber-950/20 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF6F00] to-amber-500 text-white flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-[#0F294D] dark:text-foreground">AI Budget Suggestions Available</p>
+                  <p className="text-[11px] text-[#64748B] dark:text-muted-foreground">Click "Use AI" next to any category to auto-fill the AI-recommended range.</p>
+                </div>
+              </div>
+
+              {/* Budget Category Fields */}
+              {BUDGET_CATEGORIES.map((cat) => {
+                const isCastRow = cat.category === "Talent & Cast";
+                const aiSugg = aiBudgetSuggestions.find((s) => s.category === cat.category);
+                const editVals = tempBudgetEdits[cat.category] || { low: "0", high: "0" };
+
+                return (
+                  <div
+                    key={cat.category}
+                    className={`p-4 rounded-xl border space-y-2.5 ${
+                      isCastRow
+                        ? "border-[#001b94]/20 dark:border-sky-800/40 bg-[#EBF3FC]/30 dark:bg-sky-950/20"
+                        : "border-border bg-[#F8FAFC] dark:bg-slate-900/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-semibold text-[#0F294D] dark:text-foreground">{cat.category}</h4>
+                        {isCastRow && (
+                          <span className="text-[9px] px-2 py-0.5 bg-[#001b94] dark:bg-sky-600 text-white rounded-full font-bold uppercase tracking-wider">
+                            Auto from Cast
+                          </span>
+                        )}
+                      </div>
+
+                      {!isCastRow && aiSugg && (
+                        <button
+                          type="button"
+                          onClick={() => handleApplyAISuggestion(cat.category, aiSugg.low, aiSugg.high)}
+                          className="px-2.5 py-1 bg-gradient-to-r from-[#FF6F00] to-amber-500 hover:from-[#e06200] hover:to-amber-600 text-white text-[10px] font-semibold uppercase tracking-wider rounded-md flex items-center gap-1 transition-all shadow-sm"
+                        >
+                          <Sparkles className="w-3 h-3" /> Use AI
+                        </button>
+                      )}
+                    </div>
+
+                    {aiSugg && (
+                      <p className="text-[11px] text-[#64748B] dark:text-muted-foreground">{aiSugg.aiNote}</p>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] dark:text-muted-foreground">
+                          Low Estimate ($K)
+                        </label>
+                        <input
+                          type="number"
+                          value={editVals.low}
+                          onChange={(e) =>
+                            setTempBudgetEdits((prev) => ({
+                              ...prev,
+                              [cat.category]: { ...prev[cat.category], low: e.target.value },
+                            }))
+                          }
+                          disabled={isCastRow}
+                          className={`w-full px-3 py-2 text-sm font-semibold border rounded-lg focus:outline-none focus:ring-2 ${
+                            isCastRow
+                              ? "bg-[#EBF3FC] dark:bg-sky-950/40 border-[#001b94]/20 dark:border-sky-800/40 text-[#001b94] dark:text-sky-300 cursor-not-allowed"
+                              : "bg-background border-border focus:ring-[#001b94] dark:focus:ring-sky-400 text-foreground"
+                          }`}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] dark:text-muted-foreground">
+                          High Estimate ($K)
+                        </label>
+                        <input
+                          type="number"
+                          value={editVals.high}
+                          onChange={(e) =>
+                            setTempBudgetEdits((prev) => ({
+                              ...prev,
+                              [cat.category]: { ...prev[cat.category], high: e.target.value },
+                            }))
+                          }
+                          disabled={isCastRow}
+                          className={`w-full px-3 py-2 text-sm font-semibold border rounded-lg focus:outline-none focus:ring-2 ${
+                            isCastRow
+                              ? "bg-[#EBF3FC] dark:bg-sky-950/40 border-[#001b94]/20 dark:border-sky-800/40 text-[#001b94] dark:text-sky-300 cursor-not-allowed"
+                              : "bg-background border-border focus:ring-[#001b94] dark:focus:ring-sky-400 text-foreground"
+                          }`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-border flex items-center justify-between bg-[#F8FAFC] dark:bg-slate-900/60">
+              <button
+                type="button"
+                onClick={() => setBudgetModalOpen(false)}
+                className="px-4 py-2 text-xs font-medium text-[#64748B] dark:text-muted-foreground hover:text-[#0F294D] dark:hover:text-foreground border border-border rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveBudgetOverrides}
+                className="px-5 py-2 bg-[#001b94] dark:bg-sky-600 hover:bg-[#001470] dark:hover:bg-sky-500 text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5 shadow-md"
+              >
+                <Check className="w-3.5 h-3.5" /> Save Budget
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CARD C: LOCATIONS */}
       <div className="bg-card rounded-xl border border-border p-6 md:p-8 space-y-6">

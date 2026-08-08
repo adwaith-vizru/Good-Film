@@ -406,6 +406,76 @@ export const BUDGET_CATEGORIES: BudgetCategory[] = [
   },
 ];
 
+// Expanded actor database for search popup in Casting card
+export interface ActorSearchEntry {
+  name: string;
+  fitScore: number;
+  starPowerScore: number;
+  budgetImpact: "Low" | "Medium" | "High";
+  imageTag: string;
+  knownFor: string;
+  genre: string;
+  gender: "M" | "F" | "NB";
+  ageRange: string;
+}
+
+export const AI_ACTOR_DATABASE: ActorSearchEntry[] = [
+  { name: "Florence Pugh", fitScore: 96, starPowerScore: 94, budgetImpact: "High", imageTag: "FP", knownFor: "Dune: Part Two, Oppenheimer, Black Widow", genre: "Sci-Fi / Drama", gender: "F", ageRange: "25-35" },
+  { name: "Gemma Chan", fitScore: 92, starPowerScore: 85, budgetImpact: "Medium", imageTag: "GC", knownFor: "Eternals, Crazy Rich Asians, Humans", genre: "Sci-Fi / Drama", gender: "F", ageRange: "30-40" },
+  { name: "Cailee Spaeny", fitScore: 88, starPowerScore: 78, budgetImpact: "Low", imageTag: "CS", knownFor: "Alien: Romulus, Civil War, Priscilla", genre: "Sci-Fi / Thriller", gender: "F", ageRange: "20-30" },
+  { name: "Zendaya", fitScore: 94, starPowerScore: 98, budgetImpact: "High", imageTag: "ZD", knownFor: "Dune, Euphoria, Spider-Man", genre: "Sci-Fi / Drama", gender: "F", ageRange: "22-32" },
+  { name: "Saoirse Ronan", fitScore: 91, starPowerScore: 88, budgetImpact: "Medium", imageTag: "SR", knownFor: "Little Women, Lady Bird, Brooklyn", genre: "Drama / Period", gender: "F", ageRange: "25-35" },
+  { name: "Anya Taylor-Joy", fitScore: 93, starPowerScore: 92, budgetImpact: "High", imageTag: "AT", knownFor: "Furiosa, The Queen's Gambit, Last Night in Soho", genre: "Action / Thriller", gender: "F", ageRange: "22-32" },
+  { name: "Lupita Nyong'o", fitScore: 90, starPowerScore: 89, budgetImpact: "Medium", imageTag: "LN", knownFor: "Black Panther, Us, 12 Years a Slave", genre: "Action / Drama", gender: "F", ageRange: "30-42" },
+  { name: "Jenna Ortega", fitScore: 87, starPowerScore: 86, budgetImpact: "Medium", imageTag: "JO", knownFor: "Wednesday, Scream VI, Beetlejuice 2", genre: "Horror / Comedy", gender: "F", ageRange: "18-28" },
+  { name: "Margot Robbie", fitScore: 90, starPowerScore: 96, budgetImpact: "High", imageTag: "MR", knownFor: "Barbie, Once Upon a Time in Hollywood, I Tonya", genre: "Drama / Comedy", gender: "F", ageRange: "28-38" },
+  { name: "Thomasin McKenzie", fitScore: 86, starPowerScore: 76, budgetImpact: "Low", imageTag: "TM", knownFor: "Last Night in Soho, Jojo Rabbit, Leave No Trace", genre: "Drama / Thriller", gender: "F", ageRange: "20-30" },
+  { name: "Oscar Isaac", fitScore: 95, starPowerScore: 92, budgetImpact: "High", imageTag: "OI", knownFor: "Dune, Moon Knight, Ex Machina", genre: "Sci-Fi / Drama", gender: "M", ageRange: "35-50" },
+  { name: "Dev Patel", fitScore: 91, starPowerScore: 84, budgetImpact: "Medium", imageTag: "DP", knownFor: "Monkey Man, The Green Knight, Lion", genre: "Action / Drama", gender: "M", ageRange: "28-40" },
+  { name: "Alden Ehrenreich", fitScore: 87, starPowerScore: 75, budgetImpact: "Low", imageTag: "AE", knownFor: "Oppenheimer, Solo: A Star Wars Story", genre: "Sci-Fi / Drama", gender: "M", ageRange: "28-38" },
+  { name: "Timothée Chalamet", fitScore: 94, starPowerScore: 97, budgetImpact: "High", imageTag: "TC", knownFor: "Dune, Call Me by Your Name, Wonka", genre: "Sci-Fi / Drama", gender: "M", ageRange: "22-32" },
+  { name: "Pedro Pascal", fitScore: 93, starPowerScore: 95, budgetImpact: "High", imageTag: "PP", knownFor: "The Last of Us, The Mandalorian, Narcos", genre: "Sci-Fi / Action", gender: "M", ageRange: "38-52" },
+  { name: "Paul Mescal", fitScore: 89, starPowerScore: 82, budgetImpact: "Medium", imageTag: "PM", knownFor: "Gladiator II, Normal People, Aftersun", genre: "Drama / Action", gender: "M", ageRange: "25-35" },
+  { name: "Barry Keoghan", fitScore: 88, starPowerScore: 81, budgetImpact: "Medium", imageTag: "BK", knownFor: "Saltburn, The Banshees of Inisherin, Eternals", genre: "Thriller / Drama", gender: "M", ageRange: "25-35" },
+  { name: "Jonathan Majors", fitScore: 86, starPowerScore: 79, budgetImpact: "Low", imageTag: "JM", knownFor: "Creed III, Magazine Dreams, Devotion", genre: "Drama / Action", gender: "M", ageRange: "28-40" },
+  { name: "Glen Powell", fitScore: 87, starPowerScore: 83, budgetImpact: "Medium", imageTag: "GP", knownFor: "Top Gun: Maverick, Anyone but You, Twisters", genre: "Action / Comedy", gender: "M", ageRange: "28-38" },
+  { name: "Austin Butler", fitScore: 90, starPowerScore: 88, budgetImpact: "Medium", imageTag: "AB", knownFor: "Elvis, Dune: Part Two, The Bikeriders", genre: "Drama / Sci-Fi", gender: "M", ageRange: "26-36" },
+  { name: "Ke Huy Quan", fitScore: 85, starPowerScore: 80, budgetImpact: "Low", imageTag: "KQ", knownFor: "Everything Everywhere All at Once, Loki", genre: "Sci-Fi / Action", gender: "M", ageRange: "45-55" },
+  { name: "Stephanie Hsu", fitScore: 84, starPowerScore: 74, budgetImpact: "Low", imageTag: "SH", knownFor: "Everything Everywhere All at Once, The Marvelous Mrs. Maisel", genre: "Sci-Fi / Comedy", gender: "F", ageRange: "25-38" },
+  { name: "Mia Goth", fitScore: 86, starPowerScore: 77, budgetImpact: "Low", imageTag: "MG", knownFor: "Pearl, X, MaXXXine", genre: "Horror / Thriller", gender: "F", ageRange: "25-35" },
+  { name: "LaKeith Stanfield", fitScore: 89, starPowerScore: 83, budgetImpact: "Medium", imageTag: "LS", knownFor: "Atlanta, Get Out, Sorry to Bother You", genre: "Sci-Fi / Thriller", gender: "M", ageRange: "28-38" },
+];
+
+// AI Budget Suggestion templates per tier
+export interface AIBudgetSuggestion {
+  category: string;
+  low: number;
+  high: number;
+  aiNote: string;
+}
+
+export const getAIBudgetSuggestions = (
+  tier: "Micro" | "Indie" | "Studio",
+  castBudgetLow: number,
+  castBudgetHigh: number
+): AIBudgetSuggestion[] => {
+  const base = BUDGET_CATEGORIES.map((cat) => {
+    const vals = tier === "Micro" ? cat.micro : tier === "Indie" ? cat.indie : cat.studio;
+    let aiNote = "";
+    if (cat.category === "Talent & Cast") {
+      aiNote = "Auto-calculated from your cast selections. Adjust in casting card.";
+      return { category: cat.category, low: castBudgetLow || vals.low, high: castBudgetHigh || vals.high, aiNote };
+    }
+    if (cat.category === "Crew & HODs") aiNote = `Recommended ${tier} scale crew. Includes key HODs: DP, AD, Production Designer, Costume, Gaffer.`;
+    else if (cat.category === "Locations & Stages") aiNote = `Based on ${tier === "Studio" ? "LED volume + soundstage" : tier === "Indie" ? "regional location" : "local"} shooting.`;
+    else if (cat.category === "Gear, VFX & Practical Effects") aiNote = `${tier === "Studio" ? "Full CG pipeline + practical SFX" : tier === "Indie" ? "Moderate VFX + practical" : "Minimal VFX, practical focus"}.`;
+    else if (cat.category === "Post-Production & Sound Design") aiNote = `${tier === "Studio" ? "Dolby Atmos mix, DI, full color grade" : "Standard post pipeline"}.`;
+    else if (cat.category === "Insurance & Contingency (10%)") aiNote = "Industry standard 10% contingency buffer.";
+    return { category: cat.category, low: vals.low, high: vals.high, aiNote };
+  });
+  return base;
+};
+
 export const INITIAL_LOCATIONS: LocationOption[] = [
   {
     id: "loc-1",
