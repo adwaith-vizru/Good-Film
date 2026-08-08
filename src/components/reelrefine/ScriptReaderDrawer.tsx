@@ -1,23 +1,26 @@
 import React, { useState } from "react";
-import { X, Search, BookOpen, Copy, Check, Sparkles, FileText } from "lucide-react";
+import { X, Search, BookOpen, Copy, Check, Sparkles, FileText, AlertCircle } from "lucide-react";
 import {
   SAMPLE_SCRIPT_CONTENT,
   SAMPLE_SCRIPT_TITLE,
   SAMPLE_SCRIPT_AUTHOR,
   PROJECT_SCRIPTS,
   ProjectOption,
+  ScriptImprovement,
 } from "./reelRefineData";
 
 interface ScriptReaderDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   currentProject?: ProjectOption;
+  improvements?: ScriptImprovement[];
 }
 
 export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
   isOpen,
   onClose,
   currentProject,
+  improvements = [],
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [copied, setCopied] = useState(false);
@@ -30,11 +33,19 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
   const rawScriptContent =
     (currentProject && PROJECT_SCRIPTS[currentProject.id]) || SAMPLE_SCRIPT_CONTENT;
 
-  // Generate polished version with applied AI rewrites
-  const polishedScriptContent = rawScriptContent.replace(
-    "Protocol strictly forbids unsanctioned launches during solar surges. Permission denied, Dr. Rivers.",
-    "I buried three pilot friends during the '38 flare storm, Alex. I won't let your idealism add two more names to the memorial wall. Mission aborted."
-  );
+  // Filter all currently applied AI rewrites from the studio state
+  const appliedImprovements = improvements.filter((imp) => imp.applied);
+
+  // Dynamically apply all user-selected AI rewrites into the screenplay text
+  let polishedScriptContent = rawScriptContent;
+  appliedImprovements.forEach((imp) => {
+    if (imp.originalSnippet && imp.suggestedSnippet) {
+      polishedScriptContent = polishedScriptContent.replace(
+        imp.originalSnippet.trim(),
+        imp.suggestedSnippet.trim()
+      );
+    }
+  });
 
   const activeContent = draftMode === "raw" ? rawScriptContent : polishedScriptContent;
   const scriptLines = activeContent.split("\n");
@@ -44,6 +55,8 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const appliedSnippetsText = appliedImprovements.map((imp) => imp.suggestedSnippet).join("\n");
 
   return (
     <div className="fixed inset-y-0 right-0 w-full sm:w-[480px] lg:w-[560px] bg-card border-l border-border shadow-2xl z-50 flex flex-col transition-all duration-300 font-sans">
@@ -57,7 +70,7 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
             <div className="flex items-center gap-2">
               <h3 className="font-display font-semibold text-sm">{scriptTitle}</h3>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-amber-300 border border-white/10">
-                {draftMode === "raw" ? "Raw Writer Upload" : "AI Polished Draft"}
+                {draftMode === "raw" ? "Raw Writer Upload" : `AI Polished (${appliedImprovements.length} Applied)`}
               </span>
             </div>
             <p className="text-[11px] text-slate-400 font-mono">By {scriptAuthor}</p>
@@ -110,7 +123,7 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>AI Polished Draft</span>
+            <span>AI Polished Draft ({appliedImprovements.length})</span>
           </button>
         </div>
       </div>
@@ -131,15 +144,27 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
 
       {/* Script Reader View */}
       <div className="flex-1 overflow-y-auto p-6 font-mono text-xs leading-relaxed space-y-1.5 bg-[#FAF9F6] text-slate-900 dark:bg-slate-950 dark:text-slate-200">
+        {draftMode === "polished" && appliedImprovements.length === 0 && (
+          <div className="p-4 mb-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl text-amber-900 dark:text-amber-200 text-xs font-sans flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold">No AI rewrites applied yet.</span> Go to the <strong>AI Rewrites & Diff</strong> tab and click "Apply" on any suggestion to see instant changes reflected here!
+            </div>
+          </div>
+        )}
+
         {scriptLines.map((line, idx) => {
           const isHeader =
             line.startsWith("EXT.") || line.startsWith("INT.") || line.startsWith("TITLE:");
           const isCharacter =
             line.trim() === line && line.length > 0 && line === line.toUpperCase() && !isHeader;
           const isMatch = searchQuery && line.toLowerCase().includes(searchQuery.toLowerCase());
+          
           const isPolishedLine =
             draftMode === "polished" &&
-            line.includes("memorial wall");
+            appliedImprovements.length > 0 &&
+            appliedSnippetsText.includes(line.trim()) &&
+            line.trim().length > 3;
 
           return (
             <div
@@ -156,9 +181,9 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
                 {idx + 1}
               </span>
               <div className="flex-1">
-                {isPolishedLine && (
+                {isPolishedLine && idx === scriptLines.findIndex((l) => l.trim() === line.trim()) && (
                   <span className="text-[9px] font-bold font-mono px-1.5 py-0.2 rounded bg-emerald-600 text-white uppercase block w-max mb-1">
-                    + AI Polished Dialogue Beat
+                    + Applied AI Polished Beat
                   </span>
                 )}
                 <span
@@ -181,8 +206,8 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
       {/* Drawer Footer */}
       <div className="p-3 border-t border-border bg-card text-[11px] text-muted-foreground flex items-center justify-between font-mono">
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-          {draftMode === "raw" ? "Raw Writer Original Upload" : "AI Modified Draft (v2.0)"}
+          <span className={`w-2 h-2 rounded-full ${draftMode === "raw" ? "bg-slate-400" : "bg-emerald-500 animate-pulse"}`}></span>
+          {draftMode === "raw" ? "Raw Writer Original Upload" : `AI Modified Draft (${appliedImprovements.length} Rewrites Applied)`}
         </span>
         <span>{scriptLines.length} Lines</span>
       </div>

@@ -314,6 +314,7 @@ export const ReelRefineStudio: React.FC = () => {
         isOpen={scriptReaderOpen}
         onClose={() => setScriptReaderOpen(false)}
         currentProject={currentProject}
+        improvements={improvements}
       />
 
       {/* Script Rewrite Diff Modal */}
