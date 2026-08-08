@@ -301,15 +301,15 @@ export const HomePage: React.FC<HomePageProps> = ({
       )}
 
       {/* Upload Screenplay Prompt Card */}
-      <div className="bg-gradient-to-r from-slate-900 to-[#0F294D] text-white rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-border shadow-lg">
+      <div className="bg-card dark:bg-gradient-to-r dark:from-slate-900 dark:to-[#0F294D] text-foreground dark:text-white rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-border shadow-md transition-all">
         <div className="space-y-2 text-center md:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono font-semibold uppercase tracking-wider bg-white/10 text-emerald-400 border border-white/10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono font-semibold uppercase tracking-wider bg-[#001b94]/10 dark:bg-white/10 text-[#001b94] dark:text-emerald-400 border border-[#001b94]/20 dark:border-white/10">
             <ShieldCheck className="w-3.5 h-3.5" /> Instant Local Processing
           </div>
-          <h3 className="text-xl md:text-2xl font-display font-semibold">
+          <h3 className="text-xl md:text-2xl font-display font-semibold text-[#0F294D] dark:text-white">
             Have a custom screenplay to analyze?
           </h3>
-          <p className="text-xs md:text-sm text-slate-300 max-w-xl">
+          <p className="text-xs md:text-sm text-[#64748B] dark:text-slate-300 max-w-xl font-medium">
             Upload your Final Draft (.fdx), PDF, or plain text screenplay to generate instant dialogue fixes, scene breakdowns, and production plans.
           </p>
         </div>
