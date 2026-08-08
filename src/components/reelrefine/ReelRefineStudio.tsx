@@ -23,6 +23,7 @@ import { ProductionPlans } from "./ProductionPlans";
 import { StoryboardVisualizer } from "./StoryboardVisualizer";
 import { SummaryExport } from "./SummaryExport";
 import { DiffModal } from "./DiffModal";
+import { SettingsModal } from "./SettingsModal";
 
 export const ReelRefineStudio: React.FC = () => {
   // Navigation & Project State — Home page set as default landing page
@@ -52,6 +53,9 @@ export const ReelRefineStudio: React.FC = () => {
   // Diff Modal State
   const [diffModalOpen, setDiffModalOpen] = useState<boolean>(false);
   const [selectedDiffImp, setSelectedDiffImp] = useState<ScriptImprovement | null>(null);
+
+  // Settings Modal State
+  const [settingsModalOpen, setSettingsModalOpen] = useState<boolean>(false);
 
   // Toast Feedback State
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -230,6 +234,7 @@ export const ReelRefineStudio: React.FC = () => {
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           appliedEditsCount={appliedCount}
+          onOpenSettings={() => setSettingsModalOpen(true)}
         />
 
         {/* Content Workspace Area */}
@@ -324,6 +329,13 @@ export const ReelRefineStudio: React.FC = () => {
         onClose={() => setDiffModalOpen(false)}
         onApply={handleApplyImprovement}
         onRevert={handleRevertImprovement}
+      />
+
+      {/* Studio Settings & Preferences Modal */}
+      <SettingsModal
+        isOpen={settingsModalOpen}
+        onClose={() => setSettingsModalOpen(false)}
+        onSaveToast={triggerToast}
       />
     </div>
   );

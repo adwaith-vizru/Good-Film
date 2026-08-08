@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
+  Settings,
 } from "lucide-react";
 
 export type StudioTabId =
@@ -40,6 +41,7 @@ interface StudioSidebarProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
   appliedEditsCount: number;
+  onOpenSettings?: () => void;
 }
 
 export const StudioSidebar: React.FC<StudioSidebarProps> = ({
@@ -48,6 +50,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
   collapsed,
   onToggleCollapse,
   appliedEditsCount,
+  onOpenSettings,
 }) => {
   const navGroups: StudioNavGroup[] = [
     {
@@ -207,18 +210,31 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
         </nav>
       </div>
 
-      {/* Footer Info / Version tag */}
-      {!collapsed && (
-        <div className="p-4 border-t border-border bg-slate-50/50 dark:bg-slate-900/50">
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400">
-            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-            <span>Project Saved to Studio</span>
+      {/* Footer Info & Settings Button */}
+      <div className="p-3 border-t border-border bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between gap-2">
+        {!collapsed ? (
+          <div>
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
+              <span className="truncate">Project Saved to Studio</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">
+              Auto-synced • v1.4 Active
+            </p>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">
-            Auto-synced • v1.4 Active
-          </p>
-        </div>
-      )}
+        ) : (
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 mx-auto" title="Project Auto-synced" />
+        )}
+
+        <button
+          type="button"
+          onClick={onOpenSettings}
+          className="p-2 rounded-xl text-slate-500 hover:text-[#001b94] hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors flex-shrink-0"
+          title="Studio Settings & Preferences"
+        >
+          <Settings className="w-4.5 h-4.5" />
+        </button>
+      </div>
     </aside>
   );
 };
