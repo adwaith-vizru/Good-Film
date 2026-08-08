@@ -5,6 +5,7 @@ import {
   Sparkles,
   ArrowRight,
   FileText,
+  Pause,
   Layers,
   CheckCircle2,
   Clapperboard,
@@ -14,6 +15,8 @@ import {
   ShieldCheck,
   Search,
   X,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { SAMPLE_PROJECTS, ProjectOption } from "./reelRefineData";
 
@@ -29,6 +32,29 @@ export const HomePage: React.FC<HomePageProps> = ({
   onGoToUpload,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Top-to-Bottom Slideshow state for Featured Films (Last 3 / Featured films)
+  const featuredFilms = SAMPLE_PROJECTS.slice(0, 3);
+  const [slideshowIdx, setSlideshowIdx] = useState(0);
+  const [isSlideshowPaused, setIsSlideshowPaused] = useState(false);
+
+  React.useEffect(() => {
+    if (isSlideshowPaused) return;
+    const timer = setInterval(() => {
+      setSlideshowIdx((prev) => (prev + 1) % featuredFilms.length);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [isSlideshowPaused, featuredFilms.length]);
+
+  const handlePrevSlide = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSlideshowIdx((prev) => (prev - 1 + featuredFilms.length) % featuredFilms.length);
+  };
+
+  const handleNextSlide = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSlideshowIdx((prev) => (prev + 1) % featuredFilms.length);
+  };
 
   const totalPages = SAMPLE_PROJECTS.reduce((acc, p) => acc + p.pages, 0);
   const totalScenes = SAMPLE_PROJECTS.reduce((acc, p) => acc + p.scenesCount, 0);
@@ -73,13 +99,48 @@ export const HomePage: React.FC<HomePageProps> = ({
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </button>
 
+            {/* Vertical Top-to-Bottom Slideshow Button with Hover Pause */}
             <button
               type="button"
-              onClick={() => onSelectProject(SAMPLE_PROJECTS[0], "snapshot")}
-              className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-semibold uppercase tracking-wider rounded-xl transition-all flex items-center gap-2"
+              onClick={() => onSelectProject(featuredFilms[slideshowIdx], "snapshot")}
+              onMouseEnter={() => setIsSlideshowPaused(true)}
+              onMouseLeave={() => setIsSlideshowPaused(false)}
+              onPointerEnter={() => setIsSlideshowPaused(true)}
+              onPointerLeave={() => setIsSlideshowPaused(false)}
+              onFocus={() => setIsSlideshowPaused(true)}
+              onBlur={() => setIsSlideshowPaused(false)}
+              title={isSlideshowPaused ? "Slideshow Paused (Click to Load)" : "Hover to Pause Slideshow"}
+              className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-amber-400/40 text-xs font-semibold uppercase tracking-wider rounded-xl transition-all shadow-lg flex items-center gap-2.5 relative group overflow-hidden h-[42px] min-w-[280px] sm:min-w-[335px]"
             >
-              <FileText className="w-4 h-4 text-amber-400" />
-              <span>Load Featured: {SAMPLE_PROJECTS[0].title}</span>
+              {isSlideshowPaused ? (
+                <Pause className="w-4 h-4 text-amber-300 flex-shrink-0 relative z-10 animate-pulse" />
+              ) : (
+                <FileText className="w-4 h-4 text-amber-400 flex-shrink-0 relative z-10" />
+              )}
+
+              <div className="flex-1 overflow-hidden h-full relative z-10 flex flex-col justify-center">
+                {featuredFilms.map((film, idx) => {
+                  const isActive = idx === slideshowIdx;
+                  return (
+                    <div
+                      key={film.id}
+                      className={`absolute inset-x-0 flex items-center transition-all duration-500 ease-in-out ${
+                        isActive
+                          ? "translate-y-0 opacity-100 scale-100"
+                          : idx < slideshowIdx
+                          ? "-translate-y-full opacity-0 pointer-events-none"
+                          : "translate-y-full opacity-0 pointer-events-none"
+                      }`}
+                    >
+                      <span className="text-white font-semibold whitespace-nowrap">
+                        Load Featured: {film.title}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-white group-hover:translate-x-1 transition-transform flex-shrink-0 relative z-10" />
             </button>
           </div>
         </div>
