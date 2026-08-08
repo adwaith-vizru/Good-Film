@@ -109,14 +109,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               onPointerLeave={() => setIsSlideshowPaused(false)}
               onFocus={() => setIsSlideshowPaused(true)}
               onBlur={() => setIsSlideshowPaused(false)}
-              title={isSlideshowPaused ? "Slideshow Paused (Click to Load)" : "Hover to Pause Slideshow"}
-              className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-amber-400/40 text-xs font-semibold uppercase tracking-wider rounded-xl transition-all shadow-lg flex items-center gap-2.5 relative group overflow-hidden h-[42px] min-w-[280px] sm:min-w-[335px]"
+              className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-semibold uppercase tracking-wider rounded-xl transition-all shadow-lg flex items-center gap-2.5 relative group overflow-hidden h-[42px] min-w-[280px] sm:min-w-[335px]"
             >
-              {isSlideshowPaused ? (
-                <Pause className="w-4 h-4 text-amber-300 flex-shrink-0 relative z-10 animate-pulse" />
-              ) : (
-                <FileText className="w-4 h-4 text-amber-400 flex-shrink-0 relative z-10" />
-              )}
+              <FileText className="w-4 h-4 text-amber-400 flex-shrink-0 relative z-10" />
 
               <div className="flex-1 overflow-hidden h-full relative z-10 flex flex-col justify-center">
                 {featuredFilms.map((film, idx) => {
