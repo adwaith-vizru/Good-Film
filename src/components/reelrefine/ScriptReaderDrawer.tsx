@@ -1,49 +1,82 @@
 import React, { useState } from "react";
-import { X, Search, BookOpen, Copy, Check } from "lucide-react";
-import { SAMPLE_SCRIPT_CONTENT, SAMPLE_SCRIPT_TITLE, SAMPLE_SCRIPT_AUTHOR } from "./reelRefineData";
+import { X, Search, BookOpen, Copy, Check, Sparkles, FileText } from "lucide-react";
+import {
+  SAMPLE_SCRIPT_CONTENT,
+  SAMPLE_SCRIPT_TITLE,
+  SAMPLE_SCRIPT_AUTHOR,
+  PROJECT_SCRIPTS,
+  ProjectOption,
+} from "./reelRefineData";
 
 interface ScriptReaderDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  currentProject?: ProjectOption;
 }
 
-export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({ isOpen, onClose }) => {
+export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
+  isOpen,
+  onClose,
+  currentProject,
+}) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [copied, setCopied] = useState(false);
+  const [draftMode, setDraftMode] = useState<"raw" | "polished">("raw");
 
   if (!isOpen) return null;
 
-  const scriptLines = SAMPLE_SCRIPT_CONTENT.split("\n");
+  const scriptTitle = currentProject?.title || SAMPLE_SCRIPT_TITLE;
+  const scriptAuthor = currentProject?.author || SAMPLE_SCRIPT_AUTHOR;
+  const rawScriptContent =
+    (currentProject && PROJECT_SCRIPTS[currentProject.id]) || SAMPLE_SCRIPT_CONTENT;
+
+  // Generate polished version with applied AI rewrites
+  const polishedScriptContent = rawScriptContent.replace(
+    "Protocol strictly forbids unsanctioned launches during solar surges. Permission denied, Dr. Rivers.",
+    "I buried three pilot friends during the '38 flare storm, Alex. I won't let your idealism add two more names to the memorial wall. Mission aborted."
+  );
+
+  const activeContent = draftMode === "raw" ? rawScriptContent : polishedScriptContent;
+  const scriptLines = activeContent.split("\n");
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(SAMPLE_SCRIPT_CONTENT);
+    navigator.clipboard.writeText(activeContent);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 w-full sm:w-[480px] lg:w-[540px] bg-card border-l border-border shadow-2xl z-50 flex flex-col transition-all duration-300">
+    <div className="fixed inset-y-0 right-0 w-full sm:w-[480px] lg:w-[560px] bg-card border-l border-border shadow-2xl z-50 flex flex-col transition-all duration-300 font-sans">
       {/* Drawer Header */}
       <div className="p-4 border-b border-border flex items-center justify-between bg-slate-900 text-white">
         <div className="flex items-center gap-2.5">
-          <BookOpen className="h-5 w-5 text-[#FF6F00]" />
+          <div className="p-2 bg-[#001b94] rounded-lg border border-white/20 text-amber-400">
+            <BookOpen className="h-5 w-5" />
+          </div>
           <div>
-            <h3 className="font-display font-semibold text-sm">{SAMPLE_SCRIPT_TITLE}</h3>
-            <p className="text-[11px] text-slate-400 font-mono">By {SAMPLE_SCRIPT_AUTHOR}</p>
+            <div className="flex items-center gap-2">
+              <h3 className="font-display font-semibold text-sm">{scriptTitle}</h3>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-amber-300 border border-white/10">
+                {draftMode === "raw" ? "Raw Writer Upload" : "AI Polished Draft"}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 font-mono">By {scriptAuthor}</p>
           </div>
         </div>
+
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleCopy}
             className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
-            title="Copy script text"
+            title="Copy screenplay text"
           >
             {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
           </button>
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close screenplay reader"
             className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <X className="h-5 w-5" />
@@ -51,16 +84,47 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({ isOpen, 
         </div>
       </div>
 
+      {/* Version Toggle Bar */}
+      <div className="p-2.5 bg-slate-100 dark:bg-slate-900 border-b border-border flex items-center justify-between gap-2">
+        <div className="flex items-center bg-card border border-border p-1 rounded-xl w-full text-xs">
+          <button
+            type="button"
+            onClick={() => setDraftMode("raw")}
+            className={`flex-1 py-1.5 px-3 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 ${
+              draftMode === "raw"
+                ? "bg-[#001b94] text-white shadow-xs font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Raw Original Draft</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDraftMode("polished")}
+            className={`flex-1 py-1.5 px-3 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 ${
+              draftMode === "polished"
+                ? "bg-[#001b94] text-white shadow-xs font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>AI Polished Draft</span>
+          </button>
+        </div>
+      </div>
+
       {/* Search Input */}
       <div className="p-3 border-b border-border bg-slate-50 dark:bg-slate-900/50">
         <div className="relative">
-          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search screenplay text or scene headers..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#001b94]"
+            className="w-full pl-9 pr-3 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#001b94] font-medium"
           />
         </div>
       </div>
@@ -68,29 +132,47 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({ isOpen, 
       {/* Script Reader View */}
       <div className="flex-1 overflow-y-auto p-6 font-mono text-xs leading-relaxed space-y-1.5 bg-[#FAF9F6] text-slate-900 dark:bg-slate-950 dark:text-slate-200">
         {scriptLines.map((line, idx) => {
-          const isHeader = line.startsWith("EXT.") || line.startsWith("INT.") || line.startsWith("TITLE:");
-          const isCharacter = line.trim() === line && line.length > 0 && line === line.toUpperCase() && !isHeader;
+          const isHeader =
+            line.startsWith("EXT.") || line.startsWith("INT.") || line.startsWith("TITLE:");
+          const isCharacter =
+            line.trim() === line && line.length > 0 && line === line.toUpperCase() && !isHeader;
           const isMatch = searchQuery && line.toLowerCase().includes(searchQuery.toLowerCase());
+          const isPolishedLine =
+            draftMode === "polished" &&
+            line.includes("memorial wall");
 
           return (
             <div
               key={idx}
-              className={`flex gap-4 ${isMatch ? "bg-amber-100 dark:bg-amber-950/60 p-1 rounded" : ""}`}
+              className={`flex gap-4 ${
+                isMatch
+                  ? "bg-amber-100 dark:bg-amber-950/60 p-1 rounded"
+                  : isPolishedLine
+                  ? "bg-emerald-100/80 dark:bg-emerald-950/60 p-2 rounded-lg border border-emerald-300 dark:border-emerald-800"
+                  : ""
+              }`}
             >
               <span className="w-8 text-[10px] text-slate-400 select-none text-right flex-shrink-0 font-mono">
                 {idx + 1}
               </span>
-              <span
-                className={`${
-                  isHeader
-                    ? "font-semibold text-[#001b94] dark:text-sky-400 mt-2"
-                    : isCharacter
-                    ? "font-semibold text-emerald-800 dark:text-emerald-400 tracking-wider pl-12"
-                    : "text-slate-800 dark:text-slate-300"
-                }`}
-              >
-                {line}
-              </span>
+              <div className="flex-1">
+                {isPolishedLine && (
+                  <span className="text-[9px] font-bold font-mono px-1.5 py-0.2 rounded bg-emerald-600 text-white uppercase block w-max mb-1">
+                    + AI Polished Dialogue Beat
+                  </span>
+                )}
+                <span
+                  className={`${
+                    isHeader
+                      ? "font-semibold text-[#001b94] dark:text-sky-400 mt-2 block"
+                      : isCharacter
+                      ? "font-semibold text-emerald-800 dark:text-emerald-400 tracking-wider pl-12 block"
+                      : "text-slate-800 dark:text-slate-300"
+                  }`}
+                >
+                  {line}
+                </span>
+              </div>
             </div>
           );
         })}
@@ -98,7 +180,10 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({ isOpen, 
 
       {/* Drawer Footer */}
       <div className="p-3 border-t border-border bg-card text-[11px] text-muted-foreground flex items-center justify-between font-mono">
-        <span>Standard Final Draft (.fdx) Format</span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+          {draftMode === "raw" ? "Raw Writer Original Upload" : "AI Modified Draft (v2.0)"}
+        </span>
         <span>{scriptLines.length} Lines</span>
       </div>
     </div>

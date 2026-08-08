@@ -201,7 +201,7 @@ export const SummaryExport: React.FC<SummaryExportProps> = ({
           {/* Option 1: Coverage PDF */}
           <button
             type="button"
-            onClick={() => onTriggerDownload("pdf", "ReelRefine_Coverage_Report.pdf")}
+            onClick={() => onTriggerDownload("pdf", "GoodFilmStudios_Coverage_Report.pdf")}
             className="p-5 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 text-left transition-all space-y-3 group focus:outline-none focus:ring-2 focus:ring-[#FF6F00]"
           >
             <div className="w-10 h-10 rounded-lg bg-white/20 text-[#FF6F00] flex items-center justify-center">
@@ -219,7 +219,7 @@ export const SummaryExport: React.FC<SummaryExportProps> = ({
           {/* Option 2: Development Pack ZIP */}
           <button
             type="button"
-            onClick={() => onTriggerDownload("zip", "ReelRefine_Dev_Pack.zip")}
+            onClick={() => onTriggerDownload("zip", "GoodFilmStudios_Dev_Pack.zip")}
             className="p-5 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 text-left transition-all space-y-3 group focus:outline-none focus:ring-2 focus:ring-[#FF6F00]"
           >
             <div className="w-10 h-10 rounded-lg bg-white/20 text-[#FF6F00] flex items-center justify-center">

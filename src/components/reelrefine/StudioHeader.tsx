@@ -1,39 +1,42 @@
-import React, { useState } from "react";
-import { Film, BookOpen, ChevronDown, Download, Sparkles, Check } from "lucide-react";
-import { SAMPLE_PROJECTS, ProjectOption } from "./reelRefineData";
+import React from "react";
+import { Film, BookOpen, Download, LayoutGrid } from "lucide-react";
+import { ProjectOption } from "./reelRefineData";
 
 interface StudioHeaderProps {
   currentProject: ProjectOption;
-  onSelectProject: (proj: ProjectOption) => void;
   versionTag: string;
   onToggleScriptReader: () => void;
   isScriptReaderOpen: boolean;
   onExport: () => void;
+  onGoToHome: () => void;
 }
 
 export const StudioHeader: React.FC<StudioHeaderProps> = ({
   currentProject,
-  onSelectProject,
   versionTag,
   onToggleScriptReader,
   isScriptReaderOpen,
   onExport,
+  onGoToHome,
 }) => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
   return (
-    <header className="bg-card border-b border-border z-30 sticky top-0 shadow-xs px-4 lg:px-6 py-3">
+    <header className="bg-card border-b border-border z-30 sticky top-0 shadow-xs px-4 lg:px-6 py-3 font-sans">
       <div className="w-full flex items-center justify-between gap-4">
-        {/* Left Section: Brand Logo & Project Switcher */}
+        {/* Left Section: Brand Logo & Active Project Indicator */}
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#0F294D] to-[#001b94] flex items-center justify-center text-white shadow-xs">
+          <button
+            type="button"
+            onClick={onGoToHome}
+            className="flex items-center gap-2.5 group text-left focus:outline-none"
+            title="Go to Home Page"
+          >
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#0F294D] to-[#001b94] flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform">
               <Film className="h-5 w-5 text-[#FF6F00]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-display font-semibold text-lg text-foreground tracking-tight">
-                  ReelRefine
+                <span className="font-display font-semibold text-lg text-foreground tracking-tight group-hover:text-[#001b94] transition-colors">
+                  Good Film Studios
                 </span>
                 <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-full bg-[#001b94]/10 text-[#001b94] font-mono">
                   Studio Edition
@@ -43,61 +46,26 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
                 AI Screenplay Intelligence & Production Hub
               </p>
             </div>
-          </div>
+          </button>
 
           <div className="h-6 w-[1px] bg-border hidden sm:block" />
 
-          {/* Project Selector Dropdown */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-accent text-xs font-medium text-foreground transition-all"
-            >
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span className="max-w-[140px] truncate font-semibold">{currentProject.title}</span>
-              <span className="text-[10px] text-muted-foreground font-mono hidden md:inline">
-                ({versionTag})
-              </span>
-              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
-
-            {dropdownOpen && (
-              <div className="absolute left-0 top-full mt-1.5 w-72 bg-card border border-border rounded-xl shadow-xl z-50 p-1.5">
-                <div className="px-3 py-1.5 text-[10px] uppercase font-semibold text-muted-foreground tracking-wider font-mono">
-                  Select Studio Script
-                </div>
-                <div className="space-y-1 mt-1">
-                  {SAMPLE_PROJECTS.map((proj) => {
-                    const isSelected = proj.id === currentProject.id;
-                    return (
-                      <button
-                        key={proj.id}
-                        type="button"
-                        onClick={() => {
-                          onSelectProject(proj);
-                          setDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center justify-between transition-colors ${
-                          isSelected
-                            ? "bg-[#001b94]/10 text-[#001b94] font-semibold"
-                            : "hover:bg-slate-100 dark:hover:bg-slate-800 text-foreground"
-                        }`}
-                      >
-                        <div>
-                          <div className="font-medium truncate">{proj.title}</div>
-                          <div className="text-[10px] text-muted-foreground">
-                            {proj.pages} pages • {proj.budgetTier} Budget
-                          </div>
-                        </div>
-                        {isSelected && <Check className="h-4 w-4 text-[#001b94]" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Active Script Badge (Pills to Home) */}
+          <button
+            type="button"
+            onClick={onGoToHome}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-medium text-foreground transition-all cursor-pointer group"
+            title="Active Studio Project — Click to view Movie Catalog on Home Page"
+          >
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="max-w-[150px] sm:max-w-[200px] truncate font-semibold">
+              {currentProject.title}
+            </span>
+            <span className="text-[10px] text-muted-foreground font-mono hidden md:inline">
+              ({versionTag})
+            </span>
+            <LayoutGrid className="h-3.5 w-3.5 text-[#001b94] opacity-70 group-hover:opacity-100 transition-opacity ml-1" />
+          </button>
         </div>
 
         {/* Center Section: Quick Stats */}

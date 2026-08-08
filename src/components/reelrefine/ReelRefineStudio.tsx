@@ -13,6 +13,7 @@ import {
 
 import { StudioHeader } from "./StudioHeader";
 import { StudioSidebar, StudioTabId } from "./StudioSidebar";
+import { HomePage } from "./HomePage";
 import { ScriptReaderDrawer } from "./ScriptReaderDrawer";
 import { DragDropUploader } from "./DragDropUploader";
 import { ScriptSnapshot } from "./ScriptSnapshot";
@@ -24,8 +25,8 @@ import { SummaryExport } from "./SummaryExport";
 import { DiffModal } from "./DiffModal";
 
 export const ReelRefineStudio: React.FC = () => {
-  // Navigation & Project State
-  const [activeTab, setActiveTab] = useState<StudioTabId>("upload");
+  // Navigation & Project State — Home page set as default landing page
+  const [activeTab, setActiveTab] = useState<StudioTabId>("home");
   const [currentProject, setCurrentProject] = useState<ProjectOption>(SAMPLE_PROJECTS[0]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [scriptReaderOpen, setScriptReaderOpen] = useState<boolean>(false);
@@ -45,7 +46,7 @@ export const ReelRefineStudio: React.FC = () => {
     "role-2": "Dev Patel",
   });
   const [budgetTier, setBudgetTier] = useState<"Micro" | "Indie" | "Studio">("Indie");
-  const [locations] = useState<LocationOption[]>(INITIAL_LOCATIONS);
+  const [locations, setLocations] = useState<LocationOption[]>(INITIAL_LOCATIONS);
   const [pinnedLocationIds, setPinnedLocationIds] = useState<string[]>(["loc-1", "loc-2"]);
 
   // Diff Modal State
@@ -65,11 +66,17 @@ export const ReelRefineStudio: React.FC = () => {
     }, 4000);
   };
 
-  const handleSelectProject = (proj: ProjectOption) => {
+  const handleSelectProject = (
+    proj: ProjectOption,
+    targetTab?: "snapshot" | "improve" | "breakdown" | "plans" | "export"
+  ) => {
     setCurrentProject(proj);
     setFileName(`${proj.title.replace(/\s+/g, "_")}.fdx`);
     setBudgetTier(proj.budgetTier);
-    triggerToast(`Loaded project: "${proj.title}"`);
+    if (targetTab) {
+      setActiveTab(targetTab);
+    }
+    triggerToast(`Loaded movie script: "${proj.title}"`);
   };
 
   const handleFileSelect = (selectedName: string) => {
@@ -113,11 +120,46 @@ export const ReelRefineStudio: React.FC = () => {
   };
 
   const handleToggleActorShortlist = (roleId: string, actorName: string) => {
-    setShortlistedActors((prev) => ({
-      ...prev,
+    const updatedShortlist = {
+      ...shortlistedActors,
       [roleId]: actorName,
-    }));
-    triggerToast(`Shortlisted ${actorName} for role.`);
+    };
+    setShortlistedActors(updatedShortlist);
+
+    // Auto-recalculate budget tier based on cast impact
+    let highImpactCount = 0;
+    let lowImpactCount = 0;
+
+    casting.forEach((role) => {
+      const selected = updatedShortlist[role.id] || role.selectedActor;
+      const actor = role.actorOptions.find((a) => a.name === selected);
+      if (actor?.budgetImpact === "High") highImpactCount++;
+      if (actor?.budgetImpact === "Low") lowImpactCount++;
+    });
+
+    let autoTier: "Micro" | "Indie" | "Studio" = budgetTier;
+    if (highImpactCount >= 1) {
+      autoTier = "Studio";
+    } else if (lowImpactCount >= 2) {
+      autoTier = "Micro";
+    } else {
+      autoTier = "Indie";
+    }
+
+    if (autoTier !== budgetTier) {
+      setBudgetTier(autoTier);
+      triggerToast(
+        `Shortlisted ${actorName}. Budget auto-scaled to ${
+          autoTier === "Studio"
+            ? "Studio-Lite ($2M-$5M)"
+            : autoTier === "Micro"
+            ? "Micro (<$500K)"
+            : "Indie ($500K-$2M)"
+        } tier.`
+      );
+    } else {
+      triggerToast(`Shortlisted ${actorName} for role.`);
+    }
   };
 
   const handleToggleLocationPin = (locId: string) => {
@@ -130,22 +172,33 @@ export const ReelRefineStudio: React.FC = () => {
     }
   };
 
+  const handleAddLocation = (newLoc: LocationOption) => {
+    setLocations((prev) => {
+      if (prev.some((l) => l.id === newLoc.id || l.region.toLowerCase() === newLoc.region.toLowerCase())) {
+        return prev;
+      }
+      return [newLoc, ...prev];
+    });
+    setPinnedLocationIds((prev) => (prev.includes(newLoc.id) ? prev : [...prev, newLoc.id]));
+    triggerToast(`Added & pinned ${newLoc.region} (${newLoc.matchScore || 92}% Script Match)`);
+  };
+
   const handleTriggerDownload = (fileType: string, label: string) => {
     triggerToast(`Downloading ${label}... Export package generated.`);
   };
 
   const handleCopyShareLink = () => {
-    navigator.clipboard.writeText(`https://reelrefine.studio/share/${currentProject.id}`);
+    navigator.clipboard.writeText(`https://goodfilm.studios/share/${currentProject.id}`);
     triggerToast("View-only studio share link copied to clipboard!");
   };
 
   const handleReset = () => {
-    setActiveTab("upload");
+    setActiveTab("home");
     setImprovements(INITIAL_IMPROVEMENTS);
     setShortlistedActors({ "role-1": "Gemma Chan", "role-2": "Dev Patel" });
     setPinnedLocationIds(["loc-1", "loc-2"]);
     setBudgetTier("Indie");
-    triggerToast("Studio workspace reset to original state.");
+    triggerToast("Studio workspace reset to Home page.");
   };
 
   return (
@@ -161,11 +214,11 @@ export const ReelRefineStudio: React.FC = () => {
       {/* Top Studio Header */}
       <StudioHeader
         currentProject={currentProject}
-        onSelectProject={handleSelectProject}
         versionTag={versionTag}
         onToggleScriptReader={() => setScriptReaderOpen(!scriptReaderOpen)}
         isScriptReaderOpen={scriptReaderOpen}
         onExport={() => setActiveTab("export")}
+        onGoToHome={() => setActiveTab("home")}
       />
 
       {/* Main Studio Body: Sidebar + Dynamic Workspace Area */}
@@ -181,6 +234,14 @@ export const ReelRefineStudio: React.FC = () => {
 
         {/* Content Workspace Area */}
         <main className="flex-1 overflow-y-auto no-scrollbar p-4 sm:p-6 w-full min-h-0">
+          {activeTab === "home" && (
+            <HomePage
+              currentProject={currentProject}
+              onSelectProject={handleSelectProject}
+              onGoToUpload={() => setActiveTab("upload")}
+            />
+          )}
+
           {activeTab === "upload" && (
             <DragDropUploader
               onFileSelect={handleFileSelect}
@@ -193,7 +254,7 @@ export const ReelRefineStudio: React.FC = () => {
             <ScriptSnapshot
               fileName={fileName}
               onNext={() => setActiveTab("improve")}
-              onBack={() => setActiveTab("upload")}
+              onBack={() => setActiveTab("home")}
             />
           )}
 
@@ -222,6 +283,7 @@ export const ReelRefineStudio: React.FC = () => {
               onToggleActorShortlist={handleToggleActorShortlist}
               onBudgetTierChange={setBudgetTier}
               onToggleLocationPin={handleToggleLocationPin}
+              onAddLocation={handleAddLocation}
               onNext={() => setActiveTab("storyboard")}
               onBack={() => setActiveTab("breakdown")}
             />
@@ -251,6 +313,7 @@ export const ReelRefineStudio: React.FC = () => {
       <ScriptReaderDrawer
         isOpen={scriptReaderOpen}
         onClose={() => setScriptReaderOpen(false)}
+        currentProject={currentProject}
       />
 
       {/* Script Rewrite Diff Modal */}

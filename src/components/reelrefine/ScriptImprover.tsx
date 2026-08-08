@@ -14,6 +14,7 @@ import {
   Columns,
   ListFilter,
   SlidersHorizontal,
+  Bot,
 } from "lucide-react";
 import { ScriptImprovement } from "./reelRefineData";
 
@@ -224,7 +225,7 @@ export const ScriptImprover: React.FC<ScriptImproverProps> = ({
                       onClick={() => onOpenDiff(imp)}
                       className="px-3 py-1.5 text-xs font-medium text-[#001b94] bg-[#001b94]/10 hover:bg-[#001b94]/20 rounded-xl transition-colors flex items-center gap-1.5"
                     >
-                      <Eye className="w-3.5 h-3.5" /> Full Modal
+                      <Bot className="w-3.5 h-3.5 text-[#FF6F00]" /> AI Assistant Chat
                     </button>
 
                     {imp.applied ? (

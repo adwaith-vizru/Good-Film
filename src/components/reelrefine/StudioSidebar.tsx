@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Home,
   Upload,
   BarChart3,
   Sparkles,
@@ -9,11 +10,11 @@ import {
   FileCheck2,
   ChevronLeft,
   ChevronRight,
-  Film,
   CheckCircle2,
 } from "lucide-react";
 
 export type StudioTabId =
+  | "home"
   | "upload"
   | "snapshot"
   | "improve"
@@ -49,6 +50,18 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
   appliedEditsCount,
 }) => {
   const navGroups: StudioNavGroup[] = [
+    {
+      groupName: "Overview",
+      items: [
+        {
+          id: "home",
+          label: "Home / Movies",
+          icon: Home,
+          badge: "3",
+          description: "Movie catalog & project dashboard",
+        },
+      ],
+    },
     {
       groupName: "Script Analysis",
       items: [
