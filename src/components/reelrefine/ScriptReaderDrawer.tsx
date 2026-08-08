@@ -24,7 +24,7 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [copied, setCopied] = useState(false);
-  const [draftMode, setDraftMode] = useState<"raw" | "polished">("raw");
+  const [draftMode, setDraftMode] = useState<"raw" | "polished">("polished");
 
   if (!isOpen) return null;
 
@@ -36,14 +36,13 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
   // Filter all currently applied AI rewrites from the studio state
   const appliedImprovements = improvements.filter((imp) => imp.applied);
 
-  // Dynamically apply all user-selected AI rewrites into the screenplay text
-  let polishedScriptContent = rawScriptContent;
+  // Dynamically replace original snippets with suggested snippets for all applied improvements
+  let polishedScriptContent = rawScriptContent.replace(/\r\n/g, "\n");
   appliedImprovements.forEach((imp) => {
     if (imp.originalSnippet && imp.suggestedSnippet) {
-      polishedScriptContent = polishedScriptContent.replace(
-        imp.originalSnippet.trim(),
-        imp.suggestedSnippet.trim()
-      );
+      const origNorm = imp.originalSnippet.replace(/\r\n/g, "\n").trim();
+      const sugNorm = imp.suggestedSnippet.replace(/\r\n/g, "\n").trim();
+      polishedScriptContent = polishedScriptContent.replace(origNorm, sugNorm);
     }
   });
 
@@ -56,7 +55,19 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const appliedSnippetsText = appliedImprovements.map((imp) => imp.suggestedSnippet).join("\n");
+  // Collect specific lines from applied suggested snippets to highlight in green
+  const appliedSuggestedLines = new Set<string>();
+  appliedImprovements.forEach((imp) => {
+    imp.suggestedSnippet.split("\n").forEach((line) => {
+      const trimmed = line.trim();
+      if (
+        trimmed.length > 3 &&
+        !["ALEX", "MARCUS", "HAYES", "JONAS", "MARA", "REN", "CLARA", "LEO"].includes(trimmed)
+      ) {
+        appliedSuggestedLines.add(trimmed);
+      }
+    });
+  });
 
   return (
     <div className="fixed inset-y-0 right-0 w-full sm:w-[480px] lg:w-[560px] bg-card border-l border-border shadow-2xl z-50 flex flex-col transition-all duration-300 font-sans">
@@ -163,8 +174,11 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
           const isPolishedLine =
             draftMode === "polished" &&
             appliedImprovements.length > 0 &&
-            appliedSnippetsText.includes(line.trim()) &&
-            line.trim().length > 3;
+            appliedSuggestedLines.has(line.trim());
+
+          const isFirstPolishedInBlock =
+            isPolishedLine &&
+            (idx === 0 || !appliedSuggestedLines.has(scriptLines[idx - 1]?.trim() || ""));
 
           return (
             <div
@@ -173,7 +187,7 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
                 isMatch
                   ? "bg-amber-100 dark:bg-amber-950/60 p-1 rounded"
                   : isPolishedLine
-                  ? "bg-emerald-100/80 dark:bg-emerald-950/60 p-2 rounded-lg border border-emerald-300 dark:border-emerald-800"
+                  ? "bg-emerald-100/80 dark:bg-emerald-950/60 p-2 rounded-lg border border-emerald-300 dark:border-emerald-800 font-semibold text-emerald-950 dark:text-emerald-200"
                   : ""
               }`}
             >
@@ -181,9 +195,9 @@ export const ScriptReaderDrawer: React.FC<ScriptReaderDrawerProps> = ({
                 {idx + 1}
               </span>
               <div className="flex-1">
-                {isPolishedLine && idx === scriptLines.findIndex((l) => l.trim() === line.trim()) && (
-                  <span className="text-[9px] font-bold font-mono px-1.5 py-0.2 rounded bg-emerald-600 text-white uppercase block w-max mb-1">
-                    + Applied AI Polished Beat
+                {isFirstPolishedInBlock && (
+                  <span className="text-[9px] font-bold font-mono px-2 py-0.5 rounded bg-emerald-600 text-white uppercase inline-flex items-center gap-1 mb-1 shadow-2xs">
+                    <Sparkles className="w-2.5 h-2.5 text-amber-300" /> + APPLIED AI REWRITE
                   </span>
                 )}
                 <span

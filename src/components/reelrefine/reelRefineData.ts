@@ -67,32 +67,32 @@ CAPTAIN MARCUS VANE (38) leans against the shuttle ramp, adjusting his flight gl
 MARCUS
 Ten minutes is a luxury, Alex. Ground Control locked the thrusters three minutes ago.
 
+INT. MISSION CONTROL - BRIEFING ROOM - NIGHT
+
+DIRECTOR HAYES (52) slams a tablet onto the glass conference table.
+
+HAYES
+Protocol strictly forbids unsanctioned launches during solar surges. Permission denied, Dr. Rivers.
+
 ALEX
 Then override them. We didn't trek across the Mare Tranquillitatis just to turn around.
 
-MARCUS
-If I fire the aux units manually, we burn forty percent of our reserve fuel before reaching low orbit.
-
-ALEX
-(firm)
-We burn whatever it takes. Look at the telemetry, Marcus. That storm isn't dying down—it's concentrating directly over Sector 4.
-
-Marcus stares at the monitor. The amber pulse flickers rhythmically.
-
-MARCUS
-(sighs)
-Alright. Strap in. It's going to be a bumpy ride.
-
-INT. SHUTTLE COCKPIT - CONTINUOUS
+INT. SHUTTLE COCKPIT - MID-FLIGHT
 
 The cockpit hums with high-frequency static. Alarm klaxons sound softly in the background.
 
-Alex flips three toggle switches on the overhead panel.
+MARCUS
+The secondary generator is holding at sixty percent. We should reach orbital equilibrium in twenty minutes.
 
 ALEX
-Initiating secondary ignition sequence. 3... 2... 1...
+Good. I'll recalibrate the sensor array while we wait.
 
-The shuttle shakes violently as the engines ignite. Outside, the solar winds whirl like liquid gold.`;
+INT. SHUTTLE COCKPIT - SOLAR EYE
+
+The shuttle shakes violently as the engines ignite. Outside, the solar winds whirl like liquid gold.
+
+ALEX
+The ion density is three thousand particles per cubic centimeter! That means the radiation field is critical!`;
 
 export const PROJECT_SCRIPTS: Record<string, string> = {
   "proj-1": SAMPLE_SCRIPT_CONTENT,
