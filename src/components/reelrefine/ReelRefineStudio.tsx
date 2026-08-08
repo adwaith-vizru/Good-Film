@@ -9,6 +9,8 @@ import {
   ScriptImprovement,
   CastRole,
   LocationOption,
+  getImprovementsForProject,
+  getCastingForProject,
 } from "./reelRefineData";
 
 import { StudioHeader } from "./StudioHeader";
@@ -41,7 +43,7 @@ export const ReelRefineStudio: React.FC = () => {
   const [improvements, setImprovements] = useState<ScriptImprovement[]>(INITIAL_IMPROVEMENTS);
 
   // Casting & Locations State
-  const [casting] = useState<CastRole[]>(INITIAL_CASTING);
+  const [casting, setCasting] = useState<CastRole[]>(INITIAL_CASTING);
   const [shortlistedActors, setShortlistedActors] = useState<Record<string, string>>({
     "role-1": "Gemma Chan",
     "role-2": "Dev Patel",
@@ -82,6 +84,8 @@ export const ReelRefineStudio: React.FC = () => {
     setCurrentProject(proj);
     setFileName(`${proj.title.replace(/\s+/g, "_")}.fdx`);
     setBudgetTier(proj.budgetTier);
+    setImprovements(getImprovementsForProject(proj));
+    setCasting(getCastingForProject(proj));
     if (targetTab) {
       setActiveTab(targetTab);
     }
@@ -92,6 +96,22 @@ export const ReelRefineStudio: React.FC = () => {
     setFileName(selectedName);
     setIsAnalyzing(true);
     setAnalysisBeat(0);
+
+    const cleanTitle = selectedName.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
+    const customProj: ProjectOption = {
+      id: `proj-custom-${Date.now()}`,
+      title: cleanTitle,
+      author: "Uploaded Screenplay",
+      logline: `User uploaded script: ${selectedName}`,
+      pages: 110,
+      scenesCount: 12,
+      draftVersion: "v1.0 - Active",
+      budgetTier: "Indie",
+      genre: "Feature Script",
+    };
+    setCurrentProject(customProj);
+    setImprovements(getImprovementsForProject(customProj));
+    setCasting(getCastingForProject(customProj));
 
     const t1 = setTimeout(() => setAnalysisBeat(1), 1200);
     const t2 = setTimeout(() => setAnalysisBeat(2), 2400);
@@ -263,6 +283,7 @@ export const ReelRefineStudio: React.FC = () => {
           {activeTab === "snapshot" && (
             <ScriptSnapshot
               fileName={fileName}
+              currentProject={currentProject}
               onNext={() => setActiveTab("improve")}
               onBack={() => setActiveTab("home")}
             />
@@ -281,7 +302,7 @@ export const ReelRefineStudio: React.FC = () => {
             />
           )}
 
-          {activeTab === "breakdown" && <SceneBreakdownView />}
+          {activeTab === "breakdown" && <SceneBreakdownView currentProject={currentProject} />}
 
           {activeTab === "plans" && (
             <ProductionPlans
@@ -299,7 +320,7 @@ export const ReelRefineStudio: React.FC = () => {
             />
           )}
 
-          {activeTab === "storyboard" && <StoryboardVisualizer />}
+          {activeTab === "storyboard" && <StoryboardVisualizer currentProject={currentProject} />}
 
           {activeTab === "export" && (
             <SummaryExport

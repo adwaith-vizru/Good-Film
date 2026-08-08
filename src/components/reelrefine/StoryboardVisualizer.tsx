@@ -14,7 +14,12 @@ import {
   Sliders,
   CheckCircle2,
 } from "lucide-react";
-import { INITIAL_STORYBOARDS, StoryboardConcept } from "./reelRefineData";
+import {
+  INITIAL_STORYBOARDS,
+  StoryboardConcept,
+  ProjectOption,
+  getStoryboardsForProject,
+} from "./reelRefineData";
 
 const CAMERA_PRESETS = [
   "Low-Angle Wide (Anamorphic 35mm)",
@@ -48,8 +53,23 @@ const GRADIENT_PRESETS = [
   "from-purple-950/50 via-slate-900 to-rose-950",
 ];
 
-export const StoryboardVisualizer: React.FC = () => {
-  const [storyboards, setStoryboards] = useState<StoryboardConcept[]>(INITIAL_STORYBOARDS);
+interface StoryboardVisualizerProps {
+  storyboards?: StoryboardConcept[];
+  currentProject?: ProjectOption;
+}
+
+export const StoryboardVisualizer: React.FC<StoryboardVisualizerProps> = ({
+  storyboards: propStoryboards,
+  currentProject,
+}) => {
+  const initialData = propStoryboards || (currentProject ? getStoryboardsForProject(currentProject) : INITIAL_STORYBOARDS);
+  const [storyboards, setStoryboards] = useState<StoryboardConcept[]>(initialData);
+
+  React.useEffect(() => {
+    const newData = propStoryboards || (currentProject ? getStoryboardsForProject(currentProject) : INITIAL_STORYBOARDS);
+    setStoryboards(newData);
+  }, [currentProject, propStoryboards]);
+
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Prompt Bar Modal/Drawer State

@@ -1,13 +1,18 @@
 import React, { useState } from "react";
 import { Layers, Search, Filter, Flame, Users, Clock, Sparkles } from "lucide-react";
-import { INITIAL_SCENE_BREAKDOWNS, SceneBreakdown } from "./reelRefineData";
+import { INITIAL_SCENE_BREAKDOWNS, SceneBreakdown, ProjectOption, getScenesForProject } from "./reelRefineData";
 
-export const SceneBreakdownView: React.FC = () => {
-  const [breakdowns] = useState<SceneBreakdown[]>(INITIAL_SCENE_BREAKDOWNS);
+interface SceneBreakdownViewProps {
+  scenes?: SceneBreakdown[];
+  currentProject?: ProjectOption;
+}
+
+export const SceneBreakdownView: React.FC<SceneBreakdownViewProps> = ({ scenes, currentProject }) => {
+  const activeScenes = scenes || (currentProject ? getScenesForProject(currentProject) : INITIAL_SCENE_BREAKDOWNS);
   const [search, setSearch] = useState("");
   const [filterSetting, setFilterSetting] = useState<"ALL" | "INT" | "EXT" | "HIGH_VFX">("ALL");
 
-  const filtered = breakdowns.filter((sc) => {
+  const filtered = activeScenes.filter((sc) => {
     const matchesSearch =
       sc.slugline.toLowerCase().includes(search.toLowerCase()) ||
       sc.summary.toLowerCase().includes(search.toLowerCase()) ||
@@ -21,8 +26,8 @@ export const SceneBreakdownView: React.FC = () => {
     return true;
   });
 
-  const totalPages = breakdowns.reduce((sum, sc) => sum + sc.pages, 0);
-  const totalMins = breakdowns.reduce((sum, sc) => sum + sc.estimatedMinutes, 0);
+  const totalPages = activeScenes.reduce((sum, sc) => sum + sc.pages, 0);
+  const totalMins = activeScenes.reduce((sum, sc) => sum + sc.estimatedMinutes, 0);
 
   return (
     <div className="space-y-6">
@@ -43,7 +48,7 @@ export const SceneBreakdownView: React.FC = () => {
         <div className="flex items-center gap-3 text-xs font-medium">
           <div className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
             <span className="text-muted-foreground block text-[10px]">TOTAL SCENES</span>
-            <span className="font-mono text-sm font-semibold">{breakdowns.length} Scenes</span>
+            <span className="font-mono text-sm font-semibold">{activeScenes.length} Scenes</span>
           </div>
           <div className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
             <span className="text-muted-foreground block text-[10px]">ESTIMATED RUNTIME</span>

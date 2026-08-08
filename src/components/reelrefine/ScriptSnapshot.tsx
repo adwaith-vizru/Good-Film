@@ -14,42 +14,38 @@ import {
   Activity,
   Award,
 } from "lucide-react";
+import { ProjectOption, getSnapshotDataForProject } from "./reelRefineData";
 
 interface ScriptSnapshotProps {
   fileName: string;
+  currentProject?: ProjectOption;
   onNext: () => void;
   onBack: () => void;
 }
 
-export const ScriptSnapshot: React.FC<ScriptSnapshotProps> = ({ fileName, onNext, onBack }) => {
+export const ScriptSnapshot: React.FC<ScriptSnapshotProps> = ({ fileName, currentProject, onNext, onBack }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showRisks, setShowRisks] = useState(true);
 
-  const verdict =
-    "Compelling sci-fi thriller with strong protagonist drive; Act II pacing & antagonist depth need targeted polish.";
+  const fallbackProj: ProjectOption = {
+    id: "proj-1",
+    title: fileName || "Current Script",
+    author: "Elena Vance & Marcus Wright",
+    logline: "",
+    pages: 114,
+    scenesCount: 9,
+    draftVersion: "v1.4 - Active",
+    budgetTier: "Indie",
+  };
 
-  const strengths = [
-    "Clear protagonist journey & high-stakes survival goal (Dr. Alex Rivers)",
-    "Visually evocative scene descriptions across desolate lunar set pieces",
-    "Tightly written Act I setup with immediate 10-minute solar magnetosphere clock",
-  ];
+  const activeProj = currentProject || fallbackProj;
+  const snapshot = getSnapshotDataForProject(activeProj);
 
-  const opportunities = [
-    "Act II pacing drifts around pp. 55–72 during orbital transit sequence",
-    "Antagonist motivation under-defined in Director Hayes briefing room scene",
-    "Climactic dialogue relies on scientific exposition instead of visual subtext",
-  ];
-
-  const topRisks = [
-    { title: "High VFX Density in Solar Eye Climax", impact: "Est. +$350K to post budget", tag: "High Impact" },
-    { title: "Ext. Night Exterior Lighting Setup", impact: "Demands high-power LED volume or stage rigging", tag: "Medium Impact" },
-  ];
-
-  const actPacing = [
-    { act: "Act I (pp. 1–30)", label: "Inciting Incident & Hook", score: 92, status: "Tightly Paced" },
-    { act: "Act II (pp. 31–85)", label: "Solar Entry & Orbital Transit", score: 68, status: "Needs Polish" },
-    { act: "Act III (pp. 86–114)", label: "Solar Eye Climax", score: 88, status: "High Tension" },
-  ];
+  const verdict = snapshot.verdict;
+  const strengths = snapshot.strengths;
+  const opportunities = snapshot.opportunities;
+  const topRisks = snapshot.topRisks;
+  const actPacing = snapshot.actPacing;
 
   return (
     <div className="space-y-6 font-sans">
@@ -58,7 +54,7 @@ export const ScriptSnapshot: React.FC<ScriptSnapshotProps> = ({ fileName, onNext
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-border pb-6">
           <div>
             <div className="flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-              <span>Screenplay Intelligence Snapshot</span> • <span className="text-[#001b94] dark:text-sky-400 font-semibold">{fileName}</span>
+              <span>Screenplay Intelligence Snapshot</span> • <span className="text-[#001b94] dark:text-sky-400 font-semibold">{activeProj.title}</span>
             </div>
             <h2 className="text-2xl font-display font-semibold text-foreground">
               Executive Readiness Overview
@@ -71,11 +67,11 @@ export const ScriptSnapshot: React.FC<ScriptSnapshotProps> = ({ fileName, onNext
                 Overall Coverage Score
               </div>
               <div className="text-2xl font-semibold font-mono text-[#001b94] dark:text-sky-300">
-                78% <span className="text-xs font-normal text-muted-foreground">/ High Potential</span>
+                {snapshot.overallScore}% <span className="text-xs font-normal text-muted-foreground">/ {snapshot.overallScore >= 80 ? "High Potential" : "Strong Potential"}</span>
               </div>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-[#001b94] dark:bg-sky-600 text-white flex items-center justify-center font-semibold font-mono text-base shadow-xs">
-              78
+              {snapshot.overallScore}
             </div>
           </div>
         </div>
@@ -86,8 +82,8 @@ export const ScriptSnapshot: React.FC<ScriptSnapshotProps> = ({ fileName, onNext
             <div className="text-[10px] uppercase font-mono font-semibold text-muted-foreground flex items-center gap-1">
               <Activity className="h-3.5 w-3.5 text-[#001b94] dark:text-sky-400" /> Act I Pacing
             </div>
-            <div className="text-sm font-semibold font-mono text-foreground">92 / 100</div>
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">Exceptional Hook</span>
+            <div className="text-sm font-semibold font-mono text-foreground">{actPacing[0]?.score || 90} / 100</div>
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">{actPacing[0]?.status || "Exceptional Hook"}</span>
           </div>
 
           <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-border space-y-1">
@@ -102,16 +98,16 @@ export const ScriptSnapshot: React.FC<ScriptSnapshotProps> = ({ fileName, onNext
             <div className="text-[10px] uppercase font-mono font-semibold text-muted-foreground flex items-center gap-1">
               <BarChart3 className="h-3.5 w-3.5 text-[#001b94] dark:text-sky-400" /> Commercial Fit
             </div>
-            <div className="text-sm font-semibold font-mono text-foreground">84 / 100</div>
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">Sci-Fi Thriller</span>
+            <div className="text-sm font-semibold font-mono text-foreground">{snapshot.overallScore} / 100</div>
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">{activeProj.genre || "Feature Script"}</span>
           </div>
 
           <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-border space-y-1">
             <div className="text-[10px] uppercase font-mono font-semibold text-muted-foreground flex items-center gap-1">
               <Award className="h-3.5 w-3.5 text-[#FF6F00]" /> Production Score
             </div>
-            <div className="text-sm font-semibold font-mono text-foreground">Indie Tier</div>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Est. $4.5M – $8M</span>
+            <div className="text-sm font-semibold font-mono text-foreground">{snapshot.productionTierLabel}</div>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{snapshot.estimatedBudgetRange}</span>
           </div>
         </div>
 
@@ -133,7 +129,7 @@ export const ScriptSnapshot: React.FC<ScriptSnapshotProps> = ({ fileName, onNext
       <div className="bg-card rounded-2xl border border-border p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-display font-semibold text-base text-foreground">Act-by-Act Narrative Pacing</h3>
-          <span className="text-xs font-mono text-muted-foreground">114 Total Pages</span>
+          <span className="text-xs font-mono text-muted-foreground">{activeProj.pages} Total Pages</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -267,7 +263,7 @@ export const ScriptSnapshot: React.FC<ScriptSnapshotProps> = ({ fileName, onNext
             Deep Coverage Breakdown & Scene Metrics
           </h4>
           <p className="text-xs text-white/90 leading-relaxed">
-            The screenplay displays 82% scene economy in Act I, with dialogue density peaking at 42 lines/page in Act II. Pacing can be optimized by consolidating interior cockpit chatter on pp. 62–68.
+            The screenplay displays 82% scene economy in Act I, with dialogue density peaking at 42 lines/page in Act II. Pacing can be optimized by consolidating interior cockpit chatter on Pages 62–68.
           </p>
           <button
             type="button"
