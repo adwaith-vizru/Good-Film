@@ -32,7 +32,46 @@ export const HomePage: React.FC<HomePageProps> = ({
   onSelectProject,
   onGoToUpload,
 }) => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Detect scroll position on parent scrollable container (<main>) and window
+  React.useEffect(() => {
+    const parentEl = containerRef.current?.closest("main") || containerRef.current?.parentElement;
+
+    const handleScroll = () => {
+      const scrollTop = parentEl ? parentEl.scrollTop : window.scrollY;
+      if (scrollTop > 150) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+
+    if (parentEl) {
+      parentEl.addEventListener("scroll", handleScroll);
+    }
+    window.addEventListener("scroll", handleScroll);
+
+    // Run initial check
+    handleScroll();
+
+    return () => {
+      if (parentEl) {
+        parentEl.removeEventListener("scroll", handleScroll);
+      }
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  const scrollToTop = () => {
+    const parentEl = containerRef.current?.closest("main") || containerRef.current?.parentElement;
+    if (parentEl) {
+      parentEl.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   // Top-to-Bottom Slideshow state for Featured Films (All movies)
   const featuredFilms = SAMPLE_PROJECTS;
@@ -74,7 +113,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   });
 
   return (
-    <div className="space-y-8 font-sans max-w-7xl mx-auto pb-8">
+    <div ref={containerRef} className="space-y-8 font-sans max-w-7xl mx-auto pb-8 relative">
       {/* Hero Header Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0F294D] via-[#001b94] to-[#1E3A8A] text-white p-6 md:p-10 shadow-xl border border-white/10">
         <div className="absolute right-0 top-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-[#FF6F00]/20 blur-3xl pointer-events-none" />
@@ -383,6 +422,22 @@ export const HomePage: React.FC<HomePageProps> = ({
           <span>Upload Screenplay File</span>
         </button>
       </div>
+
+      {/* Floating Hover Scroll-to-Top Button */}
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 z-50 p-3.5 rounded-full bg-gradient-to-br from-[#0F294D] via-[#001b94] to-[#1E3A8A] text-white border border-white/20 shadow-2xl hover:border-amber-400 hover:shadow-[0_0_20px_rgba(255,111,0,0.5)] hover:scale-110 active:scale-95 transition-all duration-300 group flex items-center gap-2 cursor-pointer"
+          title="Scroll back to top"
+          aria-label="Scroll back to top"
+        >
+          <ChevronUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
+          <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 text-xs font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pr-1">
+            Back to Top
+          </span>
+        </button>
+      )}
     </div>
   );
 };
