@@ -34,8 +34,8 @@ export const HomePage: React.FC<HomePageProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Top-to-Bottom Slideshow state for Featured Films (Last 3 / Featured films)
-  const featuredFilms = SAMPLE_PROJECTS.slice(0, 3);
+  // Top-to-Bottom Slideshow state for Featured Films (All movies)
+  const featuredFilms = SAMPLE_PROJECTS;
   const [slideshowIdx, setSlideshowIdx] = useState(0);
   const [isSlideshowPaused, setIsSlideshowPaused] = useState(false);
 

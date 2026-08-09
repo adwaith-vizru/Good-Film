@@ -65,6 +65,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     };
     if (isOpen) {
       window.addEventListener("keydown", handleKeyDown);
+      const isDark = document.documentElement.classList.contains("dark");
+      setAppearance(isDark ? "Dark" : "Light");
     }
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
@@ -142,14 +144,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-xs animate-fade-in font-sans text-slate-100"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs animate-fade-in font-sans text-foreground"
       role="dialog"
       aria-modal="true"
       aria-labelledby="settings-modal-title"
     >
-      <div className="bg-[#121214] border border-slate-800 rounded-3xl max-w-4xl w-full h-[82vh] overflow-hidden flex flex-col md:flex-row shadow-2xl">
+      <div className="bg-card text-card-foreground border border-border rounded-3xl max-w-4xl w-full h-[82vh] overflow-hidden flex flex-col md:flex-row shadow-2xl transition-colors">
         {/* LEFT SIDEBAR NAVIGATION */}
-        <div className="w-full md:w-64 bg-[#18181b] border-b md:border-b-0 md:border-r border-slate-800/80 p-4 flex flex-col justify-between flex-shrink-0">
+        <div className="w-full md:w-64 bg-slate-100/80 dark:bg-[#18181b] border-b md:border-b-0 md:border-r border-border p-4 flex flex-col justify-between flex-shrink-0 transition-colors">
           <div className="space-y-4">
             {/* Top Close Button (X) */}
             <div className="flex items-center justify-between pb-1">
@@ -157,11 +159,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 type="button"
                 onClick={onClose}
                 aria-label="Close settings"
-                className="w-9 h-9 rounded-xl border border-slate-700/80 bg-[#27272a] text-slate-200 hover:text-white hover:bg-slate-700 flex items-center justify-center transition-all shadow-xs"
+                className="w-9 h-9 rounded-xl border border-border bg-background text-foreground hover:bg-muted flex items-center justify-center transition-all shadow-xs cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
-              <span className="text-[11px] font-mono text-slate-400 md:hidden">Studio Settings</span>
+              <span className="text-[11px] font-mono text-muted-foreground md:hidden">Studio Settings</span>
             </div>
 
             {/* Sidebar Tab List */}
@@ -174,13 +176,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     key={item.id}
                     type="button"
                     onClick={() => setActiveTab(item.id)}
-                    className={`w-full text-left px-3.5 py-3 rounded-xl text-xs font-medium transition-all flex items-center gap-3 ${
+                    className={`w-full text-left px-3.5 py-3 rounded-xl text-xs font-medium transition-all flex items-center gap-3 cursor-pointer ${
                       isActive
-                        ? "bg-[#27272a] text-white shadow-xs"
-                        : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                        ? "bg-[#001b94] text-white shadow-xs dark:bg-slate-800 dark:text-white"
+                        : "text-slate-600 dark:text-slate-400 hover:text-foreground hover:bg-slate-200/70 dark:hover:bg-slate-800/50"
                     }`}
                   >
-                    <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
+                    <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-white" : "text-slate-500 dark:text-slate-400"}`} />
                     <span className="truncate">{item.label}</span>
                   </button>
                 );
@@ -188,17 +190,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </nav>
           </div>
 
-          <div className="pt-3 border-t border-slate-800 text-[10px] font-mono text-slate-500 hidden md:block">
+          <div className="pt-3 border-t border-border text-[10px] font-mono text-muted-foreground hidden md:block">
             Good Film Studios v1.4
           </div>
         </div>
 
         {/* RIGHT CONTENT PANEL */}
-        <div className="flex-1 bg-[#121214] p-6 md:p-8 overflow-y-auto space-y-6 flex flex-col justify-between">
+        <div className="flex-1 bg-background dark:bg-[#121214] p-6 md:p-8 overflow-y-auto space-y-6 flex flex-col justify-between transition-colors">
           <div className="space-y-6">
             {/* Header Title */}
             <div className="flex items-center justify-between">
-              <h2 id="settings-modal-title" className="text-xl font-display font-semibold text-white tracking-tight capitalize">
+              <h2 id="settings-modal-title" className="text-xl font-display font-semibold text-foreground tracking-tight capitalize">
                 {activeTab === "general" ? "General" : sidebarNavItems.find((i) => i.id === activeTab)?.label}
               </h2>
 
@@ -208,7 +210,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   onSaveToast("All settings saved and applied to studio!");
                   onClose();
                 }}
-                className="px-4 py-1.5 bg-[#001b94] hover:bg-[#001470] text-white text-xs font-medium rounded-xl transition-colors shadow-xs"
+                className="px-4 py-1.5 bg-[#001b94] hover:bg-[#001470] text-white text-xs font-medium rounded-xl transition-colors shadow-xs cursor-pointer"
               >
                 Save & Close
               </button>
@@ -218,16 +220,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {activeTab === "general" && (
               <div className="space-y-6 animate-fade-in">
                 {/* Security Callout Banner & Interactive MFA Flow */}
-                <div className="bg-[#09090b] p-5 rounded-2xl border border-slate-800/90 space-y-4 relative overflow-hidden">
+                <div className="bg-slate-100 dark:bg-[#09090b] p-5 rounded-2xl border border-border space-y-4 relative overflow-hidden transition-colors">
                   <div className="flex items-start justify-between">
-                    <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-white">
+                    <div className="w-10 h-10 rounded-xl bg-background border border-border flex items-center justify-center text-foreground shadow-xs">
                       <Lock className="w-5 h-5" />
                     </div>
                     {mfaSetupStep !== "idle" && (
                       <button
                         type="button"
                         onClick={() => setMfaSetupStep("idle")}
-                        className="text-slate-500 hover:text-slate-300 text-xs"
+                        className="text-muted-foreground hover:text-foreground text-xs"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -236,14 +238,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-semibold text-white">Secure your studio account</h3>
+                      <h3 className="text-sm font-semibold text-foreground">Secure your studio account</h3>
                       {mfaSetupStep === "enabled" && (
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] uppercase font-bold border border-emerald-500/30">
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 font-mono text-[10px] uppercase font-bold border border-emerald-500/20">
                           MFA Enabled
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed max-w-lg">
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed max-w-lg">
                       Add multi-factor authentication (MFA), like a text message or authenticator app, to protect your studio scripts.
                     </p>
                   </div>
@@ -253,26 +255,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setMfaSetupStep("qr")}
-                      className="px-4 py-2 bg-[#27272a] hover:bg-slate-700 text-white border border-slate-700 rounded-full text-xs font-semibold transition-all"
+                      className="px-4 py-2 bg-slate-200 dark:bg-[#27272a] hover:bg-slate-300 dark:hover:bg-slate-700 text-foreground dark:text-white border border-border rounded-full text-xs font-semibold transition-all cursor-pointer"
                     >
                       Set up MFA
                     </button>
                   )}
 
                   {mfaSetupStep === "qr" && (
-                    <div className="p-4 bg-[#18181b] border border-slate-800 rounded-xl space-y-3 animate-fade-in text-xs">
+                    <div className="p-4 bg-background border border-border rounded-xl space-y-3 animate-fade-in text-xs">
                       <div className="flex items-center gap-3">
-                        <div className="w-16 h-16 bg-white p-1 rounded-lg flex items-center justify-center text-slate-900">
+                        <div className="w-16 h-16 bg-white p-1 rounded-lg flex items-center justify-center text-slate-900 border border-slate-200">
                           <QrCode className="w-12 h-12 text-slate-900" />
                         </div>
                         <div className="space-y-1">
-                          <p className="font-semibold text-slate-200">1. Scan QR with Authenticator App</p>
-                          <p className="text-[11px] text-slate-400 font-mono">Secret Key: GOODFILM-STUDIO-849204</p>
+                          <p className="font-semibold text-foreground">1. Scan QR with Authenticator App</p>
+                          <p className="text-[11px] text-muted-foreground font-mono">Secret Key: GOODFILM-STUDIO-849204</p>
                         </div>
                       </div>
 
-                      <div className="space-y-2 pt-2 border-t border-slate-800">
-                        <p className="font-semibold text-slate-200">2. Enter 6-Digit Code</p>
+                      <div className="space-y-2 pt-2 border-t border-border">
+                        <p className="font-semibold text-foreground">2. Enter 6-Digit Code</p>
                         <div className="flex items-center gap-2">
                           <input
                             type="text"
@@ -280,12 +282,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             value={mfaCode}
                             onChange={(e) => setMfaCode(e.target.value)}
                             placeholder="123456"
-                            className="bg-[#09090b] border border-slate-700 text-white font-mono text-center text-sm tracking-widest px-3 py-1.5 rounded-lg w-32 focus:outline-none focus:ring-1 focus:ring-[#001b94]"
+                            className="bg-slate-100 dark:bg-[#09090b] border border-border text-foreground font-mono text-center text-sm tracking-widest px-3 py-1.5 rounded-lg w-32 focus:outline-none focus:ring-1 focus:ring-[#001b94]"
                           />
                           <button
                             type="button"
                             onClick={handleVerifyMfa}
-                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors"
+                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
                           >
                             Verify & Enable
                           </button>
@@ -295,9 +297,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   )}
 
                   {mfaSetupStep === "enabled" && (
-                    <div className="p-3 bg-emerald-950/40 border border-emerald-800/60 rounded-xl text-emerald-200 text-xs flex items-center justify-between">
+                    <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl text-emerald-800 dark:text-emerald-200 text-xs flex items-center justify-between">
                       <span className="flex items-center gap-2 font-medium">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Account protected with 2FA Authenticator
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Account protected with 2FA Authenticator
                       </span>
                       <button
                         type="button"
@@ -305,7 +307,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           setMfaSetupStep("idle");
                           onSaveToast("MFA disabled.");
                         }}
-                        className="text-[11px] text-slate-400 hover:text-white underline font-mono"
+                        className="text-[11px] text-muted-foreground hover:text-foreground underline font-mono"
                       >
                         Disable
                       </button>
@@ -316,15 +318,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {/* General Live Interactive Settings Rows List */}
                 <div className="space-y-1 text-xs">
                   {/* Row 1: Live Appearance */}
-                  <div className="py-3.5 border-b border-slate-800/80 flex items-center justify-between">
+                  <div className="py-3.5 border-b border-border flex items-center justify-between">
                     <div>
-                      <span className="font-medium text-slate-200 block">Appearance</span>
-                      <span className="text-[11px] text-slate-400">Live UI theme mode toggle</span>
+                      <span className="font-medium text-foreground block">Appearance</span>
+                      <span className="text-[11px] text-muted-foreground">Live UI theme mode toggle</span>
                     </div>
                     <select
                       value={appearance}
                       onChange={(e) => handleAppearanceChange(e.target.value)}
-                      className="bg-[#18181b] border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-600 font-medium cursor-pointer"
+                      className="bg-slate-100 dark:bg-[#18181b] border border-border text-foreground text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#001b94] font-medium cursor-pointer"
                     >
                       <option value="System">System Default</option>
                       <option value="Dark">Dark Mode</option>
@@ -333,15 +335,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
 
                   {/* Row 2: Live Contrast */}
-                  <div className="py-3.5 border-b border-slate-800/80 flex items-center justify-between">
+                  <div className="py-3.5 border-b border-border flex items-center justify-between">
                     <div>
-                      <span className="font-medium text-slate-200 block">Contrast</span>
-                      <span className="text-[11px] text-slate-400">Adjust screen contrast mode</span>
+                      <span className="font-medium text-foreground block">Contrast</span>
+                      <span className="text-[11px] text-muted-foreground">Adjust screen contrast mode</span>
                     </div>
                     <select
                       value={contrast}
                       onChange={(e) => handleContrastChange(e.target.value)}
-                      className="bg-[#18181b] border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-600 font-medium cursor-pointer"
+                      className="bg-slate-100 dark:bg-[#18181b] border border-border text-foreground text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#001b94] font-medium cursor-pointer"
                     >
                       <option value="Standard">Standard Contrast</option>
                       <option value="High">High Contrast</option>
@@ -350,15 +352,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
 
                   {/* Row 3: Live Accent Color */}
-                  <div className="py-3.5 border-b border-slate-800/80 flex items-center justify-between">
+                  <div className="py-3.5 border-b border-border flex items-center justify-between">
                     <div>
-                      <span className="font-medium text-slate-200 block">Accent color</span>
-                      <span className="text-[11px] text-slate-400">Primary studio highlight color</span>
+                      <span className="font-medium text-foreground block">Accent color</span>
+                      <span className="text-[11px] text-muted-foreground">Primary studio highlight color</span>
                     </div>
                     <select
                       value={accentColor}
                       onChange={(e) => handleAccentColorChange(e.target.value)}
-                      className="bg-[#18181b] border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-600 font-medium cursor-pointer"
+                      className="bg-slate-100 dark:bg-[#18181b] border border-border text-foreground text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#001b94] font-medium cursor-pointer"
                     >
                       <option value="Good Film Navy">Default (Good Film Navy)</option>
                       <option value="Studio Amber">Studio Amber (#FF6F00)</option>
@@ -367,15 +369,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
 
                   {/* Row 4: Live Icon Color */}
-                  <div className="py-3.5 border-b border-slate-800/80 flex items-center justify-between">
+                  <div className="py-3.5 border-b border-border flex items-center justify-between">
                     <div>
-                      <span className="font-medium text-slate-200 block">Icon color</span>
-                      <span className="text-[11px] text-slate-400">Sidebar & button icon palette</span>
+                      <span className="font-medium text-foreground block">Icon color</span>
+                      <span className="text-[11px] text-muted-foreground">Sidebar & button icon palette</span>
                     </div>
                     <select
                       value={iconColor}
                       onChange={(e) => handleIconColorChange(e.target.value)}
-                      className="bg-[#18181b] border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-600 font-medium cursor-pointer"
+                      className="bg-slate-100 dark:bg-[#18181b] border border-border text-foreground text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#001b94] font-medium cursor-pointer"
                     >
                       <option value="Default">Default Palette</option>
                       <option value="Black">Black Icons</option>
@@ -384,15 +386,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
 
                   {/* Row 5: Live Language */}
-                  <div className="py-3.5 border-b border-slate-800/80 flex items-center justify-between">
+                  <div className="py-3.5 border-b border-border flex items-center justify-between">
                     <div>
-                      <span className="font-medium text-slate-200 block">Language</span>
-                      <span className="text-[11px] text-slate-400">Studio workspace language</span>
+                      <span className="font-medium text-foreground block">Language</span>
+                      <span className="text-[11px] text-muted-foreground">Studio workspace language</span>
                     </div>
                     <select
                       value={language}
                       onChange={(e) => handleLanguageChange(e.target.value)}
-                      className="bg-[#18181b] border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-600 font-medium cursor-pointer"
+                      className="bg-slate-100 dark:bg-[#18181b] border border-border text-foreground text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#001b94] font-medium cursor-pointer"
                     >
                       <option value="English (US)">English (US)</option>
                       <option value="English (UK)">English (UK)</option>
@@ -408,18 +410,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {/* NOTIFICATIONS TAB VIEW */}
             {activeTab === "notifications" && (
               <div className="space-y-4 animate-fade-in text-xs">
-                <p className="text-slate-400">Manage studio alerts, AI rewrite notifications, and export status updates.</p>
+                <p className="text-muted-foreground">Manage studio alerts, AI rewrite notifications, and export status updates.</p>
 
                 <div className="space-y-1">
-                  <div className="py-3.5 border-b border-slate-800/80 flex items-center justify-between">
+                  <div className="py-3.5 border-b border-border flex items-center justify-between">
                     <div>
-                      <div className="font-medium text-slate-200">Studio Digest Email</div>
-                      <div className="text-[11px] text-slate-400">Receive summary reports for screenplay improvements</div>
+                      <div className="font-medium text-foreground">Studio Digest Email</div>
+                      <div className="text-[11px] text-muted-foreground">Receive summary reports for screenplay improvements</div>
                     </div>
                     <select
                       value={emailDigest}
                       onChange={(e) => setEmailDigest(e.target.value)}
-                      className="bg-[#18181b] border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-600 font-medium cursor-pointer"
+                      className="bg-slate-100 dark:bg-[#18181b] border border-border text-foreground text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#001b94] font-medium cursor-pointer"
                     >
                       <option value="Weekly Studio Summary">Weekly Summary</option>
                       <option value="Immediate">Immediate</option>
@@ -427,15 +429,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </select>
                   </div>
 
-                  <div className="py-3.5 border-b border-slate-800/80 flex items-center justify-between">
+                  <div className="py-3.5 border-b border-border flex items-center justify-between">
                     <div>
-                      <div className="font-medium text-slate-200">AI Rewrite Toast Alerts</div>
-                      <div className="text-[11px] text-slate-400">Show notification toasts when AI suggestions are applied</div>
+                      <div className="font-medium text-foreground">AI Rewrite Toast Alerts</div>
+                      <div className="text-[11px] text-muted-foreground">Show notification toasts when AI suggestions are applied</div>
                     </div>
                     <select
                       value={rewriteAlerts}
                       onChange={(e) => setRewriteAlerts(e.target.value)}
-                      className="bg-[#18181b] border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-600 font-medium cursor-pointer"
+                      className="bg-slate-100 dark:bg-[#18181b] border border-border text-foreground text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#001b94] font-medium cursor-pointer"
                     >
                       <option value="Enabled">Enabled</option>
                       <option value="Disabled">Disabled</option>
@@ -448,18 +450,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {/* PERSONALIZATION TAB VIEW */}
             {activeTab === "personalization" && (
               <div className="space-y-4 animate-fade-in text-xs">
-                <p className="text-slate-400">Configure AI copilot analysis personas, auto-save frequency, and reader fonts.</p>
+                <p className="text-muted-foreground">Configure AI copilot analysis personas, auto-save frequency, and reader fonts.</p>
 
                 <div className="space-y-1">
-                  <div className="py-3.5 border-b border-slate-800/80 flex items-center justify-between">
+                  <div className="py-3.5 border-b border-border flex items-center justify-between">
                     <div>
-                      <div className="font-medium text-slate-200">AI Model Persona</div>
-                      <div className="text-[11px] text-slate-400">Controls subtext analysis tone & rewrite style</div>
+                      <div className="font-medium text-foreground">AI Model Persona</div>
+                      <div className="text-[11px] text-muted-foreground">Controls subtext analysis tone & rewrite style</div>
                     </div>
                     <select
                       value={aiPersona}
                       onChange={(e) => setAiPersona(e.target.value)}
-                      className="bg-[#18181b] border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-600 font-medium cursor-pointer"
+                      className="bg-slate-100 dark:bg-[#18181b] border border-border text-foreground text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#001b94] font-medium cursor-pointer"
                     >
                       <option value="Director's Cut">Director's Cut</option>
                       <option value="Executive Producer">Executive Producer</option>
@@ -467,30 +469,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </select>
                   </div>
 
-                  <div className="py-3.5 border-b border-slate-800/80 flex items-center justify-between">
+                  <div className="py-3.5 border-b border-border flex items-center justify-between">
                     <div>
-                      <div className="font-medium text-slate-200">Live Reader Typography</div>
-                      <div className="text-[11px] text-slate-400">Default font used in Live Script Reader drawer</div>
+                      <div className="font-medium text-foreground">Live Reader Typography</div>
+                      <div className="text-[11px] text-muted-foreground">Default font used in Live Script Reader drawer</div>
                     </div>
                     <select
                       value={scriptFont}
                       onChange={(e) => setScriptFont(e.target.value)}
-                      className="bg-[#18181b] border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-600 font-medium cursor-pointer"
+                      className="bg-slate-100 dark:bg-[#18181b] border border-border text-foreground text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#001b94] font-medium cursor-pointer"
                     >
                       <option value="Courier Prime 12pt">Courier Prime 12pt</option>
                       <option value="Modern Clean Sans">Modern Clean Sans</option>
                     </select>
                   </div>
 
-                  <div className="py-3.5 border-b border-slate-800/80 flex items-center justify-between">
+                  <div className="py-3.5 border-b border-border flex items-center justify-between">
                     <div>
-                      <div className="font-medium text-slate-200">Auto-save Frequency</div>
-                      <div className="text-[11px] text-slate-400">Interval between automated draft checkpoints</div>
+                      <div className="font-medium text-foreground">Auto-save Frequency</div>
+                      <div className="text-[11px] text-muted-foreground">Interval between automated draft checkpoints</div>
                     </div>
                     <select
                       value={autoSaveFreq}
                       onChange={(e) => setAutoSaveFreq(e.target.value)}
-                      className="bg-[#18181b] border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-600 font-medium cursor-pointer"
+                      className="bg-slate-100 dark:bg-[#18181b] border border-border text-foreground text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#001b94] font-medium cursor-pointer"
                     >
                       <option value="Real-time Sync">Real-time Sync</option>
                       <option value="Every 1 Minute">Every 1 Minute</option>
@@ -506,23 +508,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <div className="space-y-5 animate-fade-in text-xs">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-white">Studio AI API Key</h3>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] uppercase font-bold border border-emerald-500/30">
+                    <h3 className="text-sm font-semibold text-foreground">Studio AI API Key</h3>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 font-mono text-[10px] uppercase font-bold border border-emerald-500/20">
                       Active & Verified
                     </span>
                   </div>
-                  <p className="text-slate-400 text-xs leading-relaxed">
+                  <p className="text-muted-foreground text-xs leading-relaxed">
                     Your API key is stored securely in local browser storage and used for live AI screenplay analysis and rewrites.
                   </p>
                 </div>
 
                 {/* API Key Input Box */}
-                <div className="p-5 bg-[#18181b] border border-slate-800 rounded-2xl space-y-4">
+                <div className="p-5 bg-slate-100 dark:bg-[#18181b] border border-border rounded-2xl space-y-4">
                   <div className="flex items-center justify-between">
-                    <label className="text-slate-200 font-semibold text-xs flex items-center gap-1.5">
-                      <KeyRound className="w-3.5 h-3.5 text-amber-400" /> Studio Secret API Key
+                    <label className="text-foreground font-semibold text-xs flex items-center gap-1.5">
+                      <KeyRound className="w-3.5 h-3.5 text-amber-500" /> Studio Secret API Key
                     </label>
-                    <span className="text-[10px] text-slate-500 font-mono">
+                    <span className="text-[10px] text-muted-foreground font-mono">
                       {showApiKey ? "Key visible on screen" : "Masked with * for security"}
                     </span>
                   </div>
@@ -533,7 +535,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       value={apiKey}
                       onChange={(e) => setApiKey(e.target.value)}
                       placeholder="Enter your API Key (e.g. gf_sk_...)"
-                      className="w-full bg-[#09090b] border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-slate-100 font-mono focus:outline-none focus:ring-2 focus:ring-[#001b94] pr-24 tracking-wider"
+                      className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-xs text-foreground font-mono focus:outline-none focus:ring-2 focus:ring-[#001b94] pr-24 tracking-wider"
                     />
 
                     {/* View / Eye Toggle Button */}
@@ -541,17 +543,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       <button
                         type="button"
                         onClick={() => setShowApiKey(!showApiKey)}
-                        className="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors flex items-center gap-1.5 text-[11px] font-medium border border-slate-700/60"
+                        className="px-2.5 py-1.5 rounded-lg text-foreground bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5 text-[11px] font-medium border border-border cursor-pointer"
                         title={showApiKey ? "Hide API Key" : "View API Key"}
                       >
                         {showApiKey ? (
                           <>
-                            <EyeOff className="w-3.5 h-3.5 text-slate-400" />
+                            <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />
                             <span>Hide</span>
                           </>
                         ) : (
                           <>
-                            <Eye className="w-3.5 h-3.5 text-amber-400" />
+                            <Eye className="w-3.5 h-3.5 text-amber-500" />
                             <span>View</span>
                           </>
                         )}
@@ -560,13 +562,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-muted-foreground">
                       Keys are encrypted at rest. Never share your studio secret keys.
                     </p>
                     <button
                       type="button"
                       onClick={() => onSaveToast("API Key updated and stored securely!")}
-                      className="px-4 py-2 bg-[#001b94] hover:bg-[#001470] text-white rounded-xl text-xs font-medium transition-colors shadow-xs"
+                      className="px-4 py-2 bg-[#001b94] hover:bg-[#001470] text-white rounded-xl text-xs font-medium transition-colors shadow-xs cursor-pointer"
                     >
                       Save Key
                     </button>
@@ -578,37 +580,37 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {/* ACCOUNT TAB VIEW */}
             {activeTab === "account" && (
               <div className="space-y-4 animate-fade-in text-xs">
-                <p className="text-slate-400">Writer profile and active studio organization information.</p>
+                <p className="text-muted-foreground">Writer profile and active studio organization information.</p>
 
                 <div className="space-y-1">
-                  <div className="py-3.5 border-b border-slate-800/80 flex items-center justify-between">
-                    <span className="font-medium text-slate-200">Writer Profile</span>
-                    <span className="text-slate-400 font-mono">Elena Vance & Marcus Wright</span>
+                  <div className="py-3.5 border-b border-border flex items-center justify-between">
+                    <span className="font-medium text-foreground">Writer Profile</span>
+                    <span className="text-muted-foreground font-mono">Elena Vance & Marcus Wright</span>
                   </div>
 
-                  <div className="py-3.5 border-b border-slate-800/80 flex items-center justify-between">
-                    <span className="font-medium text-slate-200">Studio Email</span>
-                    <span className="text-slate-400 font-mono">writer@goodfilm.studios</span>
+                  <div className="py-3.5 border-b border-border flex items-center justify-between">
+                    <span className="font-medium text-foreground">Studio Email</span>
+                    <span className="text-muted-foreground font-mono">writer@goodfilm.studios</span>
                   </div>
 
-                  <div className="py-3.5 border-b border-slate-800/80 flex items-center justify-between">
-                    <span className="font-medium text-slate-200">Studio Role</span>
-                    <span className="text-slate-400 font-mono">Lead Screenwriter / Director</span>
+                  <div className="py-3.5 border-b border-border flex items-center justify-between">
+                    <span className="font-medium text-foreground">Studio Role</span>
+                    <span className="text-muted-foreground font-mono">Lead Screenwriter / Director</span>
                   </div>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
-            <span>Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">Esc</kbd> to exit settings</span>
+          <div className="pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
+            <span>Press <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border text-foreground font-mono text-[10px]">Esc</kbd> to exit settings</span>
             <button
               type="button"
               onClick={() => {
                 onSaveToast("Studio preferences saved!");
                 onClose();
               }}
-              className="px-4 py-2 bg-[#27272a] hover:bg-slate-700 text-white rounded-xl text-xs font-semibold transition-colors border border-slate-700"
+              className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-[#27272a] dark:hover:bg-slate-700 text-foreground dark:text-white rounded-xl text-xs font-semibold transition-colors border border-border cursor-pointer"
             >
               Done
             </button>

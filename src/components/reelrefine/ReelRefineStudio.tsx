@@ -279,6 +279,7 @@ export const ReelRefineStudio: React.FC = () => {
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           appliedEditsCount={appliedCount}
+          moviesCount={SAMPLE_PROJECTS.length}
           onOpenSettings={() => setSettingsModalOpen(true)}
           activeReleaseSubTab={releaseSubTab}
           activeProductionSubTab={productionSubTab}

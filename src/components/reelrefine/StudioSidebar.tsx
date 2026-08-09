@@ -1,4 +1,5 @@
 import React from "react";
+import { SAMPLE_PROJECTS } from "./reelRefineData";
 import {
   Home,
   Upload,
@@ -50,6 +51,7 @@ interface StudioSidebarProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
   appliedEditsCount: number;
+  moviesCount?: number;
   onOpenSettings?: () => void;
   activeReleaseSubTab?: string;
   activeProductionSubTab?: string;
@@ -61,6 +63,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
   collapsed,
   onToggleCollapse,
   appliedEditsCount,
+  moviesCount = SAMPLE_PROJECTS.length,
   onOpenSettings,
   activeReleaseSubTab = "window",
   activeProductionSubTab = "budget",
@@ -73,7 +76,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
           id: "home",
           label: "Home / Movies",
           icon: Home,
-          badge: "3",
+          badge: moviesCount.toString(),
           description: "Movie catalog & project dashboard",
         },
       ],
