@@ -20,6 +20,8 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
   onExport,
   onGoToHome,
 }) => {
+  const [isBrandHovered, setIsBrandHovered] = React.useState(false);
+
   return (
     <header className="bg-card border-b border-border z-30 sticky top-0 shadow-xs px-4 lg:px-6 py-3 font-sans">
       <div className="w-full flex items-center justify-between gap-4">
@@ -28,10 +30,17 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
           <button
             type="button"
             onClick={onGoToHome}
+            onMouseEnter={() => setIsBrandHovered(true)}
+            onMouseLeave={() => setIsBrandHovered(false)}
             className="flex items-center gap-2.5 group text-left focus:outline-none cursor-pointer"
             title="Go to Home Page"
           >
-            <AnimatedFilmLogo size="md" className="group-hover:scale-105 transition-transform" animated={true} />
+            <AnimatedFilmLogo
+              size="md"
+              className="group-hover:scale-105 transition-transform"
+              animated={true}
+              isHovered={isBrandHovered}
+            />
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-display font-semibold text-lg text-foreground tracking-tight group-hover:text-[#001b94] transition-colors">

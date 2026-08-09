@@ -137,6 +137,19 @@
   animation: filmScroll 2.8s linear infinite !important;
 }
 
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 8s linear infinite;
+}
+
 @keyframes filmGlow {
   0%, 100% { opacity: 0.3; transform: scale(1); }
   50% { opacity: 0.8; transform: scale(1.08); }
