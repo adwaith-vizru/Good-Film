@@ -175,6 +175,16 @@ export const MarketViability: React.FC<MarketViabilityProps> = ({
   const [showCollision, setShowCollision] = useState(true);
   const [showComps, setShowComps] = useState(true);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [demographicView, setDemographicView] = useState<"bar" | "pie">("bar");
+  const [activeDemoIndex, setActiveDemoIndex] = useState<number | null>(null);
+  const [ottView, setOttView] = useState<"pie" | "bar">("pie");
+
+  const DEMO_COLORS = ["#001b94", "#2563eb", "#6366f1", "#8b5cf6", "#ff6f00"];
+
+  const demographicPieData = data.demographics.map((dem, idx) => ({
+    ...dem,
+    color: DEMO_COLORS[idx % DEMO_COLORS.length],
+  }));
 
   const PLATFORM_COLORS: Record<string, string> = {
     Netflix: "#E50914",
@@ -311,97 +321,166 @@ export const MarketViability: React.FC<MarketViabilityProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-xs font-mono bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg border border-border self-start sm:self-auto">
-              <Sparkles className="w-3.5 h-3.5 text-[#FF6F00]" />
-              <span>Top: <strong className="text-[#001b94] dark:text-sky-300">{topOtt.name} ({topOtt.share}%)</strong></span>
-            </div>
-          </div>
+            <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+              <div className="flex items-center gap-2 text-xs font-mono bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg border border-border">
+                <Sparkles className="w-3.5 h-3.5 text-[#FF6F00]" />
+                <span>Top: <strong className="text-[#001b94] dark:text-sky-300">{topOtt.name} ({topOtt.share}%)</strong></span>
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-            {/* Left Column: Donut Pie Chart (5 Cols) */}
-            <div className="md:col-span-5 flex flex-col items-center justify-center relative min-h-[220px] bg-slate-50/50 dark:bg-slate-900/40 rounded-xl p-3 border border-slate-100 dark:border-slate-800">
-              <div className="w-full h-56 relative">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={82}
-                      paddingAngle={4}
-                      dataKey="share"
-                      onMouseEnter={(_, index) => setActiveIndex(index)}
-                      onMouseLeave={() => setActiveIndex(null)}
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.color}
-                          stroke="currentColor"
-                          strokeWidth={activeIndex === index ? 3 : 1}
-                          className="transition-all duration-300 cursor-pointer hover:opacity-90"
-                        />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-
-                {/* Center Donut Label */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-2xl font-display font-bold text-[#001b94] dark:text-sky-300">
-                    {activeIndex !== null ? `${pieData[activeIndex].score}%` : `${avgScore}%`}
-                  </span>
-                  <span className="text-[9px] text-muted-foreground font-mono uppercase font-semibold tracking-wider">
-                    {activeIndex !== null ? pieData[activeIndex].name : "Avg Fit Index"}
-                  </span>
-                </div>
+              {/* Switching Button: Pie vs Bar Graph */}
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-border/60">
+                <button
+                  type="button"
+                  onClick={() => setOttView("pie")}
+                  title="Pie Chart View"
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                    ottView === "pie"
+                      ? "bg-card text-foreground shadow-xs font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <PieChartIcon className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Pie</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOttView("bar")}
+                  title="Bar Graph View"
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                    ottView === "bar"
+                      ? "bg-card text-foreground shadow-xs font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <BarChart3 className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Bar</span>
+                </button>
               </div>
             </div>
-
-            {/* Right Column: Platform Cards (7 Cols) */}
-            <div className="md:col-span-7 grid grid-cols-1 gap-2">
-              {pieData.map((ott, idx) => {
-                const isHovered = activeIndex === idx;
-
-                return (
-                  <div
-                    key={idx}
-                    onMouseEnter={() => setActiveIndex(idx)}
-                    onMouseLeave={() => setActiveIndex(null)}
-                    className={`p-2.5 rounded-xl border transition-all duration-200 cursor-pointer space-y-1 ${
-                      isHovered
-                        ? "bg-slate-100 dark:bg-slate-800/90 border-[#001b94] dark:border-sky-400 shadow-sm scale-[1.01]"
-                        : "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-slate-300"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-xs"
-                          style={{ backgroundColor: ott.color }}
-                        />
-                        <h4 className="text-xs font-bold text-foreground">{ott.name}</h4>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-display font-bold text-[#001b94] dark:text-sky-300 bg-[#001b94]/10 dark:bg-sky-500/20 px-2 py-0.5 rounded-md font-mono">
-                          {ott.share}%
-                        </span>
-                        <span className="text-[10px] text-muted-foreground font-mono font-semibold">
-                          ({ott.score}% Fit)
-                        </span>
-                      </div>
-                    </div>
-
-                    <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-1">
-                      {ott.reasoning}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
           </div>
+
+          {ottView === "pie" ? (
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+              {/* Left Column: Donut Pie Chart (5 Cols) */}
+              <div className="md:col-span-5 flex flex-col items-center justify-center relative min-h-[220px] bg-slate-50/50 dark:bg-slate-900/40 rounded-xl p-3 border border-slate-100 dark:border-slate-800">
+                <div className="w-full h-56 relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={55}
+                        outerRadius={82}
+                        paddingAngle={4}
+                        dataKey="share"
+                        onMouseEnter={(_, index) => setActiveIndex(index)}
+                        onMouseLeave={() => setActiveIndex(null)}
+                      >
+                        {pieData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={entry.color}
+                            stroke="currentColor"
+                            strokeWidth={activeIndex === index ? 3 : 1}
+                            className="transition-all duration-300 cursor-pointer hover:opacity-90"
+                          />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+
+                  {/* Center Donut Label */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-2xl font-display font-bold text-[#001b94] dark:text-sky-300">
+                      {activeIndex !== null ? `${pieData[activeIndex].score}%` : `${avgScore}%`}
+                    </span>
+                    <span className="text-[9px] text-muted-foreground font-mono uppercase font-semibold tracking-wider">
+                      {activeIndex !== null ? pieData[activeIndex].name : "Avg Fit Index"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Platform Cards (7 Cols) */}
+              <div className="md:col-span-7 grid grid-cols-1 gap-2">
+                {pieData.map((ott, idx) => {
+                  const isHovered = activeIndex === idx;
+
+                  return (
+                    <div
+                      key={idx}
+                      onMouseEnter={() => setActiveIndex(idx)}
+                      onMouseLeave={() => setActiveIndex(null)}
+                      className={`p-2.5 rounded-xl border transition-all duration-200 cursor-pointer space-y-1 ${
+                        isHovered
+                          ? "bg-slate-100 dark:bg-slate-800/90 border-[#001b94] dark:border-sky-400 shadow-sm scale-[1.01]"
+                          : "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-xs"
+                            style={{ backgroundColor: ott.color }}
+                          />
+                          <h4 className="text-xs font-bold text-foreground">{ott.name}</h4>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-display font-bold text-[#001b94] dark:text-sky-300 bg-[#001b94]/10 dark:bg-sky-500/20 px-2 py-0.5 rounded-md font-mono">
+                            {ott.share}%
+                          </span>
+                          <span className="text-[10px] text-muted-foreground font-mono font-semibold">
+                            ({ott.score}% Fit)
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-1">
+                        {ott.reasoning}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3 py-1">
+              {pieData.map((ott, idx) => (
+                <div key={idx} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3.5 border border-border/70 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: ott.color }} />
+                      <h4 className="text-xs font-bold text-foreground">{ott.name}</h4>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-mono font-bold text-[#001b94] dark:text-sky-300">
+                        {ott.share}% Share
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-mono font-semibold px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-700/60">
+                        {ott.score}% Fit
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar for Share */}
+                  <div className="space-y-1">
+                    <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${ott.share}%`, backgroundColor: ott.color }}
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    {ott.reasoning}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -493,27 +572,125 @@ export const MarketViability: React.FC<MarketViabilityProps> = ({
         </div>
 
         {/* Target Demographics */}
-        <div className="lg:col-span-4 bg-card rounded-2xl border border-border p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-[#FF6F00]" />
-            <h3 className="text-sm font-semibold text-foreground">Target Demographics</h3>
+        <div className="lg:col-span-4 bg-card rounded-2xl border border-border p-5 space-y-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-[#FF6F00]" />
+              <h3 className="text-sm font-semibold text-foreground">Target Demographics</h3>
+            </div>
+
+            {/* Switching Button: Bar vs Pie Chart */}
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-border/60">
+              <button
+                type="button"
+                onClick={() => setDemographicView("bar")}
+                title="Bar Graph View"
+                className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                  demographicView === "bar"
+                    ? "bg-card text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <BarChart3 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Bar</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDemographicView("pie")}
+                title="Pie Chart View"
+                className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                  demographicView === "pie"
+                    ? "bg-card text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <PieChartIcon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Pie</span>
+              </button>
+            </div>
           </div>
-          <div className="space-y-2.5">
-            {data.demographics.map((dem, idx) => (
-              <div key={idx} className="space-y-1">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-slate-600 dark:text-slate-300 font-medium">{dem.segment}</span>
-                  <span className="font-mono font-semibold text-foreground">{dem.percentage}%</span>
+
+          {demographicView === "bar" ? (
+            <div className="space-y-2.5">
+              {data.demographics.map((dem, idx) => (
+                <div key={idx} className="space-y-1">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-600 dark:text-slate-300 font-medium">{dem.segment}</span>
+                    <span className="font-mono font-semibold text-foreground">{dem.percentage}%</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-[#001b94] dark:bg-sky-500 transition-all duration-700"
+                      style={{ width: `${dem.percentage * 2.5}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-[#001b94] dark:bg-sky-500 transition-all duration-700"
-                    style={{ width: `${dem.percentage * 2.5}%` }}
-                  />
-                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center space-y-3 py-1">
+              <div className="w-full h-44 relative">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={demographicPieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={36}
+                      outerRadius={65}
+                      paddingAngle={3}
+                      dataKey="percentage"
+                      nameKey="segment"
+                      onMouseEnter={(_, index) => setActiveDemoIndex(index)}
+                      onMouseLeave={() => setActiveDemoIndex(null)}
+                    >
+                      {demographicPieData.map((entry, index) => (
+                        <Cell
+                          key={`demo-cell-${index}`}
+                          fill={entry.color}
+                          stroke="currentColor"
+                          strokeWidth={activeDemoIndex === index ? 2 : 1}
+                          className="transition-all duration-300 cursor-pointer hover:opacity-90"
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const item = payload[0].payload;
+                          return (
+                            <div className="bg-popover/95 backdrop-blur-md border border-border p-2 rounded-lg shadow-md text-xs font-sans">
+                              <p className="font-semibold text-foreground">{item.segment}</p>
+                              <p className="font-mono text-[#001b94] dark:text-sky-400 font-bold">{item.percentage}% of audience</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            ))}
-          </div>
+
+              {/* Legend Grid below pie chart */}
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 w-full text-[11px] pt-1 border-t border-border/50">
+                {demographicPieData.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex items-center justify-between p-1 rounded-md transition-colors ${
+                      activeDemoIndex === idx ? "bg-slate-100 dark:bg-slate-800" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                      <span className="text-slate-600 dark:text-slate-300 truncate font-medium">{item.segment}</span>
+                    </div>
+                    <span className="font-mono font-semibold text-foreground ml-1">{item.percentage}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
