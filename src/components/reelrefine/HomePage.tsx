@@ -118,9 +118,6 @@ export const HomePage: React.FC<HomePageProps> = ({
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0F294D] via-[#001b94] to-[#1E3A8A] text-white p-6 md:p-10 shadow-xl border border-white/10">
         <div className="absolute right-0 top-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-[#FF6F00]/20 blur-3xl pointer-events-none" />
         <div className="relative z-10 max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/15 backdrop-blur-md text-amber-300 border border-white/20">
-            <Sparkles className="w-3.5 h-3.5 text-[#FF6F00]" /> Studio Screenplay Catalog
-          </div>
           <div className="flex items-center gap-3.5 flex-wrap sm:flex-nowrap">
             <AnimatedFilmLogo size="lg" className="flex-shrink-0" animated={false} />
             <h1 className="text-3xl md:text-5xl font-display font-semibold tracking-tight text-white leading-tight">
@@ -208,9 +205,9 @@ export const HomePage: React.FC<HomePageProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
         <div>
           <h2 className="text-2xl font-display font-semibold text-[#0F294D] dark:text-foreground tracking-tight">
-            Movie Projects & Screenplay Cards
+            Studio Screenplay Catalog
           </h2>
-          <p className="text-xs text-[#64748B] dark:text-muted-foreground font-medium">
+          <p className="text-xs text-[#64748B] dark:text-muted-foreground font-medium mt-1">
             Choose a movie script to jump directly into its analysis, script snapshot, and budget plan.
           </p>
         </div>
@@ -423,19 +420,17 @@ export const HomePage: React.FC<HomePageProps> = ({
         </button>
       </div>
 
-      {/* Floating Hover Scroll-to-Top Button */}
+      {/* Floating Centered Glass Scroll-to-Top Button */}
       {showScrollTop && (
         <button
           type="button"
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 z-50 p-3.5 rounded-full bg-gradient-to-br from-[#0F294D] via-[#001b94] to-[#1E3A8A] text-white border border-white/20 shadow-2xl hover:border-amber-400 hover:shadow-[0_0_20px_rgba(255,111,0,0.5)] hover:scale-110 active:scale-95 transition-all duration-300 group flex items-center gap-2 cursor-pointer"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 bg-white/30 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/20 text-slate-900 dark:text-white font-semibold text-xs uppercase tracking-wider rounded-xl shadow-2xl hover:bg-white/40 dark:hover:bg-slate-800/80 hover:border-amber-400/60 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2 cursor-pointer group"
           title="Scroll back to top"
           aria-label="Scroll back to top"
         >
-          <ChevronUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
-          <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 text-xs font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pr-1">
-            Back to Top
-          </span>
+          <ChevronUp className="w-4 h-4 text-amber-500 dark:text-amber-400 group-hover:-translate-y-0.5 transition-transform" />
+          <span>Back to Top</span>
         </button>
       )}
     </div>
