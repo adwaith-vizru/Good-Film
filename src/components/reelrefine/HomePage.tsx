@@ -83,7 +83,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             <Sparkles className="w-3.5 h-3.5 text-[#FF6F00]" /> Studio Screenplay Catalog
           </div>
           <div className="flex items-center gap-3.5 flex-wrap sm:flex-nowrap">
-            <AnimatedFilmLogo size="lg" className="group cursor-pointer hover:scale-105 transition-transform flex-shrink-0" />
+            <AnimatedFilmLogo size="lg" className="flex-shrink-0" animated={false} />
             <h1 className="text-3xl md:text-5xl font-display font-semibold tracking-tight text-white leading-tight">
               Welcome to Good Film Studios
             </h1>

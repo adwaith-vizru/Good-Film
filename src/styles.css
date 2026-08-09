@@ -114,7 +114,7 @@
 }
 
 .animate-film-scroll {
-  animation: filmScroll 0.75s linear infinite;
+  animation: filmScroll 2.8s linear infinite;
 }
 
 .animate-film-scroll-slow {
@@ -134,7 +134,7 @@
 .group:hover .film-logo-strip-hover,
 .film-logo-container:hover .film-logo-strip-hover,
 .film-logo-strip-hovering {
-  animation: filmScroll 0.7s linear infinite !important;
+  animation: filmScroll 2.8s linear infinite !important;
 }
 
 @keyframes filmGlow {

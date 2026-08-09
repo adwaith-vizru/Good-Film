@@ -4,12 +4,14 @@ interface AnimatedFilmLogoProps {
   size?: "sm" | "md" | "lg";
   className?: string;
   isHovered?: boolean;
+  animated?: boolean;
 }
 
 export const AnimatedFilmLogo: React.FC<AnimatedFilmLogoProps> = ({
   size = "md",
   className = "",
   isHovered: externalIsHovered,
+  animated = true,
 }) => {
   const [internalHover, setInternalHover] = useState(false);
   const isHovered = externalIsHovered !== undefined ? externalIsHovered : internalHover;
@@ -30,11 +32,19 @@ export const AnimatedFilmLogo: React.FC<AnimatedFilmLogoProps> = ({
     <div
       onMouseEnter={() => setInternalHover(true)}
       onMouseLeave={() => setInternalHover(false)}
-      className={`film-logo-container relative overflow-hidden bg-gradient-to-br from-[#0F294D] via-[#001470] to-[#001b94] flex items-center justify-center border border-white/10 shadow-sm transition-all duration-300 group-hover:border-[#FF6F00]/50 group-hover:shadow-[0_0_15px_rgba(255,111,0,0.4)] ${sizeClasses} ${className}`}
-      title="Good Film Studios — Animated Film Reel"
+      className={`film-logo-container relative overflow-hidden bg-gradient-to-br from-[#0F294D] via-[#001470] to-[#001b94] flex items-center justify-center border border-white/10 shadow-sm transition-all duration-300 ${
+        animated ? "group-hover:border-[#FF6F00]/50 group-hover:shadow-[0_0_15px_rgba(255,111,0,0.4)]" : ""
+      } ${sizeClasses} ${className}`}
+      title={animated ? "Good Film Studios — Hover to animate film reel" : "Good Film Studios Logo"}
     >
-      {/* Background Subtle Shimmer Glow */}
-      <div className={`absolute inset-0 bg-gradient-to-tr from-[#FF6F00]/0 via-[#FF6F00]/15 to-[#FF6F00]/0 transition-opacity duration-300 ${isHovered ? "opacity-100 animate-pulse" : "opacity-0 group-hover:opacity-100"}`} />
+      {/* Background Subtle Shimmer Glow — visible on hover */}
+      {animated && (
+        <div
+          className={`absolute inset-0 bg-gradient-to-tr from-[#FF6F00]/0 via-[#FF6F00]/15 to-[#FF6F00]/0 transition-opacity duration-300 ${
+            isHovered ? "opacity-100 animate-pulse" : "opacity-0"
+          }`}
+        />
+      )}
 
       {/* Film Strip Lens Frame Cutout */}
       <div className="relative z-10 overflow-hidden flex items-center justify-center" style={{ width: svgSize.width, height: svgSize.height }}>
@@ -80,9 +90,9 @@ export const AnimatedFilmLogo: React.FC<AnimatedFilmLogoProps> = ({
 
             {/* Vertically Scrolling Film Strip Group */}
             <g
-              className={`film-logo-strip film-logo-strip-hover ${isHovered ? "film-logo-strip-hovering" : ""}`}
+              className={animated ? "film-logo-strip film-logo-strip-hover" : "film-logo-strip"}
               style={{
-                animation: isHovered ? "filmScroll 0.7s linear infinite" : "none",
+                animation: animated && isHovered ? "filmScroll 2.8s linear infinite" : "none",
               }}
             >
               {/* Pattern 1 & Pattern 2 stacked (Each pattern is 60px tall with 3 frames) */}
@@ -158,19 +168,21 @@ export const AnimatedFilmLogo: React.FC<AnimatedFilmLogoProps> = ({
             rx="4"
             stroke="#FF6F00"
             strokeWidth="1.5"
-            strokeOpacity={isHovered ? "0.9" : "0.5"}
+            strokeOpacity={animated && isHovered ? "0.9" : "0.5"}
             fill="none"
             className="transition-all duration-300"
           />
         </svg>
       </div>
 
-      {/* Projector Flash/Glow Effect on Hover */}
-      <div
-        className={`absolute inset-0 bg-radial from-[#FF6F00]/25 via-transparent to-transparent pointer-events-none transition-opacity duration-300 ${
-          isHovered ? "opacity-100 animate-pulse" : "opacity-0 group-hover:opacity-100"
-        }`}
-      />
+      {/* Projector Flash/Glow Effect when hovered */}
+      {animated && (
+        <div
+          className={`absolute inset-0 bg-radial from-[#FF6F00]/25 via-transparent to-transparent pointer-events-none transition-opacity duration-300 ${
+            isHovered ? "opacity-100 animate-pulse" : "opacity-0"
+          }`}
+        />
+      )}
     </div>
   );
 };

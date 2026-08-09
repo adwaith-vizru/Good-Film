@@ -31,7 +31,7 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
             className="flex items-center gap-2.5 group text-left focus:outline-none cursor-pointer"
             title="Go to Home Page"
           >
-            <AnimatedFilmLogo size="md" className="group-hover:scale-105 transition-transform" />
+            <AnimatedFilmLogo size="md" className="group-hover:scale-105 transition-transform" animated={true} />
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-display font-semibold text-lg text-foreground tracking-tight group-hover:text-[#001b94] transition-colors">
