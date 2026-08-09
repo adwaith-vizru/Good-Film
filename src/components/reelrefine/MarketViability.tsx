@@ -207,6 +207,7 @@ export const MarketViability: React.FC<MarketViabilityProps> = ({
   }
 
   const pieData = normalizedData;
+  const avgScore = Math.round(rawSum / (data.ottFit.length || 1));
   const topOtt = [...pieData].sort((a, b) => b.share - a.share)[0] || pieData[0];
 
   const threatColor = (t: string) => {
@@ -343,38 +344,16 @@ export const MarketViability: React.FC<MarketViabilityProps> = ({
                         />
                       ))}
                     </Pie>
-                    <Tooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const item = payload[0].payload;
-                          return (
-                            <div className="bg-[#0F294D] text-white p-3 rounded-xl shadow-xl text-xs space-y-1 border border-white/10 z-50">
-                              <div className="font-bold flex items-center gap-1.5">
-                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                                {item.name}
-                              </div>
-                              <div className="text-amber-300 font-mono font-bold">
-                                Market Share: {item.share}% (Fit Score: {item.score}%)
-                              </div>
-                              <p className="text-[10px] text-slate-300 max-w-[200px] leading-snug">
-                                {item.reasoning}
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
                   </PieChart>
                 </ResponsiveContainer>
 
                 {/* Center Donut Label */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-2xl font-display font-bold text-foreground">
-                    {activeIndex !== null ? `${pieData[activeIndex].share}%` : "100%"}
+                  <span className="text-2xl font-display font-bold text-[#001b94] dark:text-sky-300">
+                    {activeIndex !== null ? `${pieData[activeIndex].score}%` : `${avgScore}%`}
                   </span>
-                  <span className="text-[9px] text-muted-foreground font-mono uppercase font-semibold">
-                    {activeIndex !== null ? pieData[activeIndex].name : "Total Share"}
+                  <span className="text-[9px] text-muted-foreground font-mono uppercase font-semibold tracking-wider">
+                    {activeIndex !== null ? pieData[activeIndex].name : "Avg Fit Index"}
                   </span>
                 </div>
               </div>
