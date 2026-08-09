@@ -82,6 +82,43 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
       onSelectSubTab(tab);
     }
   };
+
+  type ActorOption = CastRole["actorOptions"][number];
+
+  // Dynamic Candidate Cards State per Role
+  const [roleActorOptions, setRoleActorOptions] = useState<Record<string, ActorOption[]>>({});
+
+  const getActorOptionsForRole = (roleId: string): ActorOption[] => {
+    if (roleActorOptions[roleId] !== undefined) {
+      return roleActorOptions[roleId];
+    }
+    const role = casting.find((r) => r.id === roleId);
+    return role ? role.actorOptions : [];
+  };
+
+  const handleRemoveActorCard = (roleId: string, actorName: string) => {
+    const currentList = getActorOptionsForRole(roleId);
+    const updatedList = currentList.filter((a) => a.name.toLowerCase() !== actorName.toLowerCase());
+    setRoleActorOptions((prev) => ({
+      ...prev,
+      [roleId]: updatedList,
+    }));
+
+    if (shortlistedActors[roleId] === actorName) {
+      onToggleActorShortlist(roleId, "");
+    }
+  };
+
+  const handleClearAllCast = (roleId: string) => {
+    setRoleActorOptions((prev) => ({
+      ...prev,
+      [roleId]: [],
+    }));
+    if (shortlistedActors[roleId]) {
+      onToggleActorShortlist(roleId, "");
+    }
+  };
+
   const [sliderValue, setSliderValue] = useState(65);
   const [showBudgetBreakdown, setShowBudgetBreakdown] = useState(false);
   const [showAltLocations, setShowAltLocations] = useState(false);
@@ -151,7 +188,7 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
   // Compute shortlisted actor details & budget impact
   const shortlistedCast = casting.map((role) => {
     const selectedName = shortlistedActors[role.id] || role.selectedActor;
-    const actorObj = role.actorOptions.find((a) => a.name === selectedName);
+    const actorObj = getActorOptionsForRole(role.id).find((a) => a.name === selectedName);
     return {
       roleId: role.id,
       roleName: role.roleName,
@@ -405,7 +442,38 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
   // Select actor from modal
   const handleSelectActorFromModal = (actorName: string) => {
     if (castModalRoleId) {
-      onToggleActorShortlist(castModalRoleId, actorName);
+      const roleId = castModalRoleId;
+      const currentList = getActorOptionsForRole(roleId);
+      const exists = currentList.some((a) => a.name.toLowerCase() === actorName.toLowerCase());
+
+      if (!exists) {
+        const dbActor = AI_ACTOR_DATABASE.find((a) => a.name.toLowerCase() === actorName.toLowerCase());
+        const newOption: ActorOption = dbActor
+          ? {
+              name: dbActor.name,
+              fitScore: dbActor.fitScore,
+              starPowerScore: dbActor.starPowerScore,
+              budgetImpact: dbActor.budgetImpact,
+              imageTag: dbActor.imageTag,
+              knownFor: dbActor.knownFor,
+            }
+          : {
+              name: actorName,
+              fitScore: 90,
+              starPowerScore: 85,
+              budgetImpact: "Medium",
+              imageTag: actorName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2) || "AC",
+              knownFor: "Added from Cast Search",
+            };
+
+        setRoleActorOptions((prev) => ({
+          ...prev,
+          [roleId]: [newOption, ...currentList],
+        }));
+      }
+
+      onToggleActorShortlist(roleId, actorName);
+      setSelectedRoleId(roleId);
     }
     setCastModalOpen(false);
     setCastModalRoleId(null);
@@ -546,7 +614,7 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
               max="100"
               value={sliderValue}
               onChange={(e) => setSliderValue(Number(e.target.value))}
-              className="w-full accent-[#001b94] dark:accent-sky-400 cursor-pointer h-2 bg-slate-200 dark:bg-slate-700 rounded-lg"
+              className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#001b94] dark:accent-sky-400"
               aria-label="Star power versus budget friendly balance slider"
             />
             <p className="text-[11px] text-[#64748B] dark:text-muted-foreground text-center">
@@ -586,7 +654,7 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
               <button
                 type="button"
                 onClick={() => handleOpenCastModal(activeRole.id)}
-                className="px-4 py-2.5 bg-[#001b94] dark:bg-sky-600 hover:bg-[#001470] dark:hover:bg-sky-500 text-white text-xs font-semibold uppercase tracking-wider rounded-xl transition-all flex items-center gap-1.5 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex-shrink-0"
+                className="px-4 py-2.5 bg-[#001b94] dark:bg-sky-600 hover:bg-[#001470] dark:hover:bg-sky-500 text-white text-xs font-semibold uppercase tracking-wider rounded-xl transition-all flex items-center gap-1.5 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex-shrink-0 cursor-pointer"
               >
                 <Plus className="w-4 h-4" /> Add Cast
               </button>
@@ -597,7 +665,7 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
         {/* Active Selected Role Details & Cards Viewport */}
         {activeRole && (() => {
           const currentSelected = shortlistedActors[activeRole.id] || activeRole.selectedActor;
-          const aiSuggested = getAISuggestedActor(activeRole.id);
+          const candidateList = getActorOptionsForRole(activeRole.id);
 
           return (
             <div className="space-y-4">
@@ -616,129 +684,145 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
                   </p>
                 </div>
 
-                <div className="text-left sm:text-right flex-shrink-0">
-                  <span className="text-xs font-semibold text-[#001b94] dark:text-sky-300 bg-[#EBF3FC] dark:bg-sky-950/60 px-3 py-1.5 rounded-lg border border-[#001b94]/20 dark:border-sky-800/60 block">
-                    Shortlisted: <strong className="text-[#0F294D] dark:text-foreground ml-1">{currentSelected || "None Selected"}</strong>
-                  </span>
+                <div className="flex items-center gap-2 text-left sm:text-right flex-shrink-0 flex-wrap">
+                  {currentSelected ? (
+                    <div className="inline-flex items-center gap-2 bg-[#EBF3FC] dark:bg-sky-950/60 px-3 py-1.5 rounded-lg border border-[#001b94]/20 dark:border-sky-800/60">
+                      <span className="text-xs font-semibold text-[#001b94] dark:text-sky-300">
+                        Shortlisted: <strong className="text-[#0F294D] dark:text-foreground ml-1">{currentSelected}</strong>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onToggleActorShortlist(activeRole.id, currentSelected)}
+                        title="Remove shortlisted actor"
+                        className="p-1 rounded-md bg-rose-100 dark:bg-rose-950/80 hover:bg-rose-200 dark:hover:bg-rose-900 text-rose-600 dark:text-rose-300 transition-colors cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-border inline-block">
+                      Shortlisted: <strong className="text-slate-400 ml-1">None Selected</strong>
+                    </span>
+                  )}
+
+                  {candidateList.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleClearAllCast(activeRole.id)}
+                      title="Clear all candidate cards for this role"
+                      className="px-2.5 py-1.5 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg border border-rose-200 dark:border-rose-900/50 transition-colors flex items-center gap-1 cursor-pointer font-medium"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Clear All Cards
+                    </button>
+                  )}
                 </div>
               </div>
 
-              {/* Actor Suggestions Grid for Active Role */}
-              <div className="grid md:grid-cols-3 gap-3 pt-1">
-                {/* AI Suggested Cast Card */}
-                {aiSuggested && (
-                  <div className="p-4 rounded-xl border-2 border-[#FF6F00]/40 bg-gradient-to-br from-[#FF6F00]/5 via-amber-50/40 to-orange-50/30 dark:from-[#FF6F00]/10 dark:via-amber-950/30 dark:to-orange-950/20 transition-all flex flex-col justify-between space-y-3 relative overflow-hidden group hover:border-[#FF6F00]/60 hover:shadow-lg">
-                    <div className="absolute top-0 right-0 px-2.5 py-1 bg-gradient-to-r from-[#FF6F00] to-amber-500 text-white text-[9px] font-bold uppercase tracking-widest rounded-bl-lg flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" /> AI Pick
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF6F00] to-amber-500 text-white font-semibold text-xs flex items-center justify-center shadow-md">
-                          {aiSuggested.imageTag}
-                        </span>
-                        <span className="text-xs font-semibold text-[#FF6F00] bg-[#FF6F00]/10 px-2 py-0.5 rounded border border-[#FF6F00]/20 flex items-center gap-1">
-                          <Star className="w-3 h-3 fill-[#FF6F00] text-[#FF6F00]" /> {aiSuggested.fitScore}% Fit
-                        </span>
-                      </div>
-                      <div>
-                        <h5 className="font-medium text-[#0F294D] dark:text-foreground text-sm">{aiSuggested.name}</h5>
-                        <p className="text-xs text-[#64748B] dark:text-muted-foreground line-clamp-1">{aiSuggested.knownFor}</p>
-                      </div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[11px] font-medium text-[#64748B] dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
-                          Star Power: {aiSuggested.starPowerScore}%
-                        </span>
-                        <span
-                          className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
-                            aiSuggested.budgetImpact === "High"
-                              ? "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300"
-                              : aiSuggested.budgetImpact === "Low"
-                              ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
-                              : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300"
-                          }`}
-                        >
-                          Impact: {aiSuggested.budgetImpact}
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => onToggleActorShortlist(activeRole.id, aiSuggested.name)}
-                      className="w-full py-2 px-3 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#FF6F00] to-amber-500 hover:from-[#e06200] hover:to-amber-600 text-white shadow-md hover:shadow-lg"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" /> Use AI Suggestion
-                    </button>
+              {/* Candidate Cards Grid */}
+              {candidateList.length === 0 ? (
+                <div className="p-8 bg-slate-50/60 dark:bg-slate-900/30 rounded-2xl border-2 border-dashed border-border text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#001b94]/10 dark:bg-sky-500/20 text-[#001b94] dark:text-sky-300 flex items-center justify-center mx-auto">
+                    <Users className="w-6 h-6" />
                   </div>
-                )}
-
-                {/* Existing Actor Options for Active Role */}
-                {activeRole.actorOptions.map((actor) => {
-                  const isSelected = currentSelected === actor.name;
-                  return (
-                    <div
-                      key={actor.name}
-                      className={`p-4 rounded-xl border transition-all flex flex-col justify-between space-y-3 bg-card ${
-                        isSelected
-                          ? "border-[#001b94] dark:border-sky-400 ring-2 ring-[#001b94]/20 dark:ring-sky-400/20"
-                          : "border-border hover:border-slate-300 dark:hover:border-slate-700"
-                      }`}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="w-8 h-8 rounded-full bg-[#001b94] dark:bg-sky-600 text-white font-semibold text-xs flex items-center justify-center">
-                            {actor.imageTag}
-                          </span>
-                          <span className="text-xs font-semibold text-[#001b94] dark:text-sky-300 bg-[#EBF3FC] dark:bg-sky-950/60 px-2 py-0.5 rounded border border-[#001b94]/20 dark:border-sky-800/60 flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-[#FF6F00] text-[#FF6F00]" /> {actor.fitScore}% Fit
-                          </span>
-                        </div>
-                        <div>
-                          <h5 className="font-medium text-[#0F294D] dark:text-foreground text-sm">{actor.name}</h5>
-                          <p className="text-xs text-[#64748B] dark:text-muted-foreground line-clamp-1">{actor.knownFor}</p>
-                        </div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[11px] font-medium text-[#64748B] dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
-                            Star Power: {actor.starPowerScore}%
-                          </span>
-                          <span
-                            className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
-                              actor.budgetImpact === "High"
-                                ? "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300"
-                                : actor.budgetImpact === "Low"
-                                ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
-                                : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300"
-                            }`}
-                          >
-                            Impact: {actor.budgetImpact}
-                          </span>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => onToggleActorShortlist(activeRole.id, actor.name)}
-                        className={`w-full py-2 px-3 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-semibold text-foreground">No Cast Candidates for {activeRole.roleName}</h4>
+                    <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                      All candidate cards have been cleared. Click "+ Add Cast" to search and add any actors to this role!
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenCastModal(activeRole.id)}
+                    className="px-4 py-2.5 bg-[#001b94] dark:bg-sky-600 hover:bg-[#001470] dark:hover:bg-sky-500 text-white text-xs font-semibold uppercase tracking-wider rounded-xl transition-all inline-flex items-center gap-2 shadow-md hover:scale-[1.02] cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" /> Search & Add Cast
+                  </button>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-3 gap-3 pt-1">
+                  {candidateList.map((actor) => {
+                    const isSelected = currentSelected === actor.name;
+                    return (
+                      <div
+                        key={actor.name}
+                        className={`p-4 rounded-xl border transition-all flex flex-col justify-between space-y-3 relative bg-card ${
                           isSelected
-                            ? "bg-[#001b94] dark:bg-sky-600 text-white"
-                            : "bg-[#F1F5F9] dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#0F294D] dark:text-slate-200"
+                            ? "border-[#001b94] dark:border-sky-400 ring-2 ring-[#001b94]/20 dark:ring-sky-400/20 bg-[#EBF3FC]/40 dark:bg-sky-950/20 shadow-md"
+                            : "border-border hover:border-slate-300 dark:hover:border-slate-700"
                         }`}
                       >
-                        {isSelected ? (
-                          <>
-                            <Check className="w-3.5 h-3.5" /> Shortlisted
-                          </>
-                        ) : (
-                          <>
-                            <Plus className="w-3.5 h-3.5" /> Add to Shortlist
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="w-8 h-8 rounded-full bg-[#001b94] dark:bg-sky-600 text-white font-semibold text-xs flex items-center justify-center">
+                              {actor.imageTag}
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-semibold text-[#001b94] dark:text-sky-300 bg-[#EBF3FC] dark:bg-sky-950/60 px-2 py-0.5 rounded border border-[#001b94]/20 dark:border-sky-800/60 flex items-center gap-1">
+                                <Star className="w-3 h-3 fill-[#FF6F00] text-[#FF6F00]" /> {actor.fitScore}% Fit
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveActorCard(activeRole.id, actor.name)}
+                                title="Delete candidate card"
+                                className="p-1 rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                          <div>
+                            <h5 className="font-medium text-[#0F294D] dark:text-foreground text-sm flex items-center gap-2">
+                              {actor.name}
+                              {isSelected && (
+                                <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded">
+                                  Active
+                                </span>
+                              )}
+                            </h5>
+                            <p className="text-xs text-[#64748B] dark:text-muted-foreground line-clamp-1">{actor.knownFor}</p>
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[11px] font-medium text-[#64748B] dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                              Star Power: {actor.starPowerScore}%
+                            </span>
+                            <span
+                              className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
+                                actor.budgetImpact === "High"
+                                  ? "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300"
+                                  : actor.budgetImpact === "Low"
+                                  ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
+                                  : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300"
+                              }`}
+                            >
+                              Impact: {actor.budgetImpact}
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => onToggleActorShortlist(activeRole.id, actor.name)}
+                          className={`w-full py-2 px-3 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                            isSelected
+                              ? "bg-[#001b94] dark:bg-sky-600 text-white shadow-sm"
+                              : "bg-[#F1F5F9] dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#0F294D] dark:text-slate-200"
+                          }`}
+                        >
+                          {isSelected ? (
+                            <>
+                              <Check className="w-3.5 h-3.5" /> Shortlisted
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-3.5 h-3.5" /> Add to Shortlist
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })()}

@@ -167,10 +167,13 @@ export const ReelRefineStudio: React.FC = () => {
   };
 
   const handleToggleActorShortlist = (roleId: string, actorName: string) => {
-    const updatedShortlist = {
-      ...shortlistedActors,
-      [roleId]: actorName,
-    };
+    const isCurrent = shortlistedActors[roleId] === actorName;
+    const updatedShortlist = { ...shortlistedActors };
+    if (isCurrent || !actorName) {
+      delete updatedShortlist[roleId];
+    } else {
+      updatedShortlist[roleId] = actorName;
+    }
     setShortlistedActors(updatedShortlist);
 
     // Auto-recalculate budget tier based on cast impact
