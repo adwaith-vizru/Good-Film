@@ -1,6 +1,7 @@
 import React from "react";
 import { Film, BookOpen, Download, LayoutGrid } from "lucide-react";
 import { ProjectOption } from "./reelRefineData";
+import { AnimatedFilmLogo } from "./AnimatedFilmLogo";
 
 interface StudioHeaderProps {
   currentProject: ProjectOption;
@@ -27,12 +28,10 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
           <button
             type="button"
             onClick={onGoToHome}
-            className="flex items-center gap-2.5 group text-left focus:outline-none"
+            className="flex items-center gap-2.5 group text-left focus:outline-none cursor-pointer"
             title="Go to Home Page"
           >
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#0F294D] to-[#001b94] flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform">
-              <Film className="h-5 w-5 text-[#FF6F00]" />
-            </div>
+            <AnimatedFilmLogo size="md" className="group-hover:scale-105 transition-transform" />
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-display font-semibold text-lg text-foreground tracking-tight group-hover:text-[#001b94] transition-colors">

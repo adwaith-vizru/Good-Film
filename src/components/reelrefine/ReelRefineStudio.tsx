@@ -19,11 +19,15 @@ import { HomePage } from "./HomePage";
 import { ScriptReaderDrawer } from "./ScriptReaderDrawer";
 import { DragDropUploader } from "./DragDropUploader";
 import { ScriptSnapshot } from "./ScriptSnapshot";
+import { ScriptQualityAnalysis } from "./ScriptQualityAnalysis";
 import { ScriptImprover } from "./ScriptImprover";
+import { MarketViability } from "./MarketViability";
 import { SceneBreakdownView } from "./SceneBreakdownView";
 import { ProductionPlans } from "./ProductionPlans";
 import { StoryboardVisualizer } from "./StoryboardVisualizer";
+import { InvestmentIntelligence } from "./InvestmentIntelligence";
 import { SummaryExport } from "./SummaryExport";
+import { ReleaseStrategy } from "./ReleaseStrategy";
 import { DiffModal } from "./DiffModal";
 import { SettingsModal } from "./SettingsModal";
 
@@ -52,6 +56,10 @@ export const ReelRefineStudio: React.FC = () => {
   const [locations, setLocations] = useState<LocationOption[]>(INITIAL_LOCATIONS);
   const [pinnedLocationIds, setPinnedLocationIds] = useState<string[]>(["loc-1", "loc-2"]);
 
+  // Sub-tab Navigation State
+  const [releaseSubTab, setReleaseSubTab] = useState<"window" | "certification" | "languages" | "poster" | "trailer">("window");
+  const [productionSubTab, setProductionSubTab] = useState<"budget" | "schedule" | "locations" | "casting">("budget");
+
   // Diff Modal State
   const [diffModalOpen, setDiffModalOpen] = useState<boolean>(false);
   const [selectedDiffImp, setSelectedDiffImp] = useState<ScriptImprovement | null>(null);
@@ -77,9 +85,19 @@ export const ReelRefineStudio: React.FC = () => {
     }, 4000);
   };
 
+  const handleSelectTab = (tabId: StudioTabId, subTabId?: string) => {
+    setActiveTab(tabId);
+    if (tabId === "release" && subTabId) {
+      setReleaseSubTab(subTabId as any);
+    }
+    if (tabId === "plans" && subTabId) {
+      setProductionSubTab(subTabId as any);
+    }
+  };
+
   const handleSelectProject = (
     proj: ProjectOption,
-    targetTab?: "snapshot" | "improve" | "breakdown" | "plans" | "export"
+    targetTab?: "snapshot" | "improve" | "breakdown" | "plans" | "export" | "quality" | "market" | "investment" | "release"
   ) => {
     setCurrentProject(proj);
     setFileName(`${proj.title.replace(/\s+/g, "_")}.fdx`);
@@ -227,6 +245,8 @@ export const ReelRefineStudio: React.FC = () => {
     setShortlistedActors({ "role-1": "Gemma Chan", "role-2": "Dev Patel" });
     setPinnedLocationIds(["loc-1", "loc-2"]);
     setBudgetTier("Indie");
+    setReleaseSubTab("window");
+    setProductionSubTab("budget");
     triggerToast("Studio workspace reset to Home page.");
   };
 
@@ -255,11 +275,13 @@ export const ReelRefineStudio: React.FC = () => {
         {/* Studio Sidebar Navigation */}
         <StudioSidebar
           activeTab={activeTab}
-          onSelectTab={setActiveTab}
+          onSelectTab={handleSelectTab}
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           appliedEditsCount={appliedCount}
           onOpenSettings={() => setSettingsModalOpen(true)}
+          activeReleaseSubTab={releaseSubTab}
+          activeProductionSubTab={productionSubTab}
         />
 
         {/* Content Workspace Area */}
@@ -284,8 +306,16 @@ export const ReelRefineStudio: React.FC = () => {
             <ScriptSnapshot
               fileName={fileName}
               currentProject={currentProject}
-              onNext={() => setActiveTab("improve")}
+              onNext={() => setActiveTab("quality")}
               onBack={() => setActiveTab("home")}
+            />
+          )}
+
+          {activeTab === "quality" && (
+            <ScriptQualityAnalysis
+              currentProject={currentProject}
+              onNext={() => setActiveTab("improve")}
+              onBack={() => setActiveTab("snapshot")}
             />
           )}
 
@@ -297,8 +327,16 @@ export const ReelRefineStudio: React.FC = () => {
               onApply={handleApplyImprovement}
               onRevert={handleRevertImprovement}
               onOpenDiff={handleOpenDiff}
+              onNext={() => setActiveTab("market")}
+              onBack={() => setActiveTab("quality")}
+            />
+          )}
+
+          {activeTab === "market" && (
+            <MarketViability
+              currentProject={currentProject}
               onNext={() => setActiveTab("breakdown")}
-              onBack={() => setActiveTab("snapshot")}
+              onBack={() => setActiveTab("improve")}
             />
           )}
 
@@ -317,10 +355,20 @@ export const ReelRefineStudio: React.FC = () => {
               onAddLocation={handleAddLocation}
               onNext={() => setActiveTab("storyboard")}
               onBack={() => setActiveTab("breakdown")}
+              activeSubTab={productionSubTab}
+              onSelectSubTab={setProductionSubTab}
             />
           )}
 
           {activeTab === "storyboard" && <StoryboardVisualizer currentProject={currentProject} />}
+
+          {activeTab === "investment" && (
+            <InvestmentIntelligence
+              currentProject={currentProject}
+              onNext={() => setActiveTab("export")}
+              onBack={() => setActiveTab("storyboard")}
+            />
+          )}
 
           {activeTab === "export" && (
             <SummaryExport
@@ -335,6 +383,15 @@ export const ReelRefineStudio: React.FC = () => {
               onTriggerDownload={handleTriggerDownload}
               onCopyShareLink={handleCopyShareLink}
               onReset={handleReset}
+            />
+          )}
+
+          {activeTab === "release" && (
+            <ReleaseStrategy
+              currentProject={currentProject}
+              onBack={() => setActiveTab("export")}
+              activeSubTab={releaseSubTab}
+              onSelectSubTab={setReleaseSubTab}
             />
           )}
         </main>
@@ -366,3 +423,4 @@ export const ReelRefineStudio: React.FC = () => {
     </div>
   );
 };
+

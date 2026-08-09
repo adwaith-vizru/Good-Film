@@ -19,6 +19,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { SAMPLE_PROJECTS, ProjectOption } from "./reelRefineData";
+import { AnimatedFilmLogo } from "./AnimatedFilmLogo";
 
 interface HomePageProps {
   currentProject: ProjectOption;
@@ -81,9 +82,12 @@ export const HomePage: React.FC<HomePageProps> = ({
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/15 backdrop-blur-md text-amber-300 border border-white/20">
             <Sparkles className="w-3.5 h-3.5 text-[#FF6F00]" /> Studio Screenplay Catalog
           </div>
-          <h1 className="text-3xl md:text-5xl font-display font-semibold tracking-tight text-white leading-tight">
-            Welcome to Good Film Studios
-          </h1>
+          <div className="flex items-center gap-3.5 flex-wrap sm:flex-nowrap">
+            <AnimatedFilmLogo size="lg" className="group cursor-pointer hover:scale-105 transition-transform flex-shrink-0" />
+            <h1 className="text-3xl md:text-5xl font-display font-semibold tracking-tight text-white leading-tight">
+              Welcome to Good Film Studios
+            </h1>
+          </div>
           <p className="text-sm md:text-base text-slate-200 leading-relaxed font-normal">
             Your centralized AI screenplay intelligence and production planning hub. Select any movie project below to view Coverage AI insights, interactive scene rewrites, casting shortlists, and 3-part production packages.
           </p>

@@ -19,7 +19,11 @@ import {
   Edit3,
   Zap,
   TrendingUp,
+  Calendar,
+  Clock,
 } from "lucide-react";
+
+type ProductionSubTab = "budget" | "schedule" | "locations" | "casting";
 import {
   CastRole,
   BudgetCategory,
@@ -43,6 +47,8 @@ interface ProductionPlansProps {
   onAddLocation?: (newLoc: LocationOption) => void;
   onNext: () => void;
   onBack: () => void;
+  activeSubTab?: ProductionSubTab;
+  onSelectSubTab?: (tab: ProductionSubTab) => void;
 }
 
 // Custom budget overrides by category
@@ -64,7 +70,18 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
   onAddLocation,
   onNext,
   onBack,
+  activeSubTab: externalSubTab,
+  onSelectSubTab,
 }) => {
+  const [internalSubTab, setInternalSubTab] = useState<ProductionSubTab>("budget");
+  const productionSubTab = externalSubTab || internalSubTab;
+
+  const handleSubTabChange = (tab: ProductionSubTab) => {
+    setInternalSubTab(tab);
+    if (onSelectSubTab) {
+      onSelectSubTab(tab);
+    }
+  };
   const [sliderValue, setSliderValue] = useState(65);
   const [showBudgetBreakdown, setShowBudgetBreakdown] = useState(false);
   const [showAltLocations, setShowAltLocations] = useState(false);
@@ -344,11 +361,11 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
       <div className="bg-card rounded-xl border border-border p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-[#FF6F00]/10 text-[#FF6F00] border border-[#FF6F00]/20 mb-2">
-            Step 4 of 5 • Lean Production Planning
+            Production Planning
           </span>
-          <h2 className="text-2xl font-normal font-display text-[#0F294D] dark:text-foreground">Casting, Budget & Locations</h2>
+          <h2 className="text-2xl font-normal font-display text-[#0F294D] dark:text-foreground">Production Planning</h2>
           <p className="text-xs text-[#64748B] dark:text-muted-foreground mt-0.5">
-            Configure key attachment targets, project scale, and filming incentives in one calm step.
+            Budget estimation, shooting schedule, location scouting, and casting & talent management.
           </p>
         </div>
 
@@ -360,9 +377,37 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
         </div>
       </div>
 
+      {/* Production Sub-tab Navigation */}
+      <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/60 rounded-xl p-1.5 overflow-x-auto">
+        {([
+          { id: "budget" as ProductionSubTab, label: "Budget Estimation", icon: DollarSign },
+          { id: "schedule" as ProductionSubTab, label: "Shooting Schedule", icon: Calendar },
+          { id: "locations" as ProductionSubTab, label: "Location Scout", icon: MapPin },
+          { id: "casting" as ProductionSubTab, label: "Casting & Talent", icon: Users },
+        ]).map((tab) => {
+          const Icon = tab.icon;
+          const isActive = productionSubTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => handleSubTabChange(tab.id)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
+                isActive
+                  ? "bg-[#001b94] text-white shadow-sm"
+                  : "text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700"
+              }`}
+            >
+              <Icon className={`h-3.5 w-3.5 ${isActive ? "text-[#FF6F00]" : ""}`} />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* CARD A: CASTING — WITH ADD BUTTON & SEARCH POPUP */}
+      {/* CASTING & TALENT SUB-TAB */}
       {/* ═══════════════════════════════════════════════════════════ */}
+      {productionSubTab === "casting" && <>
       <div className="bg-card rounded-xl border border-border p-6 md:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
           <div className="flex items-center gap-3">
@@ -785,9 +830,12 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
         </div>
       )}
 
+      </>}
+
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* CARD B: BUDGET — WITH ADD BUTTON & AI SUGGESTIONS */}
+      {/* BUDGET ESTIMATION SUB-TAB */}
       {/* ═══════════════════════════════════════════════════════════ */}
+      {productionSubTab === "budget" && <>
       <div className="bg-card rounded-xl border border-border p-6 md:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
           <div className="flex items-center gap-3">
@@ -1166,7 +1214,115 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
         </div>
       )}
 
-      {/* CARD C: LOCATIONS */}
+      </>}
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* SHOOTING SCHEDULE SUB-TAB */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {productionSubTab === "schedule" && (
+        <div className="space-y-6">
+          <div className="bg-card rounded-xl border border-border p-6 md:p-8 space-y-6">
+            <div className="flex items-center gap-3 border-b border-border pb-4">
+              <div className="w-10 h-10 rounded-xl bg-[#EBF3FC] dark:bg-sky-950/60 border border-[#001b94]/20 dark:border-sky-800/60 flex items-center justify-center text-[#001b94] dark:text-sky-300">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xl font-normal font-display text-[#0F294D] dark:text-foreground">Shooting Schedule</h3>
+                <p className="text-xs text-[#64748B] dark:text-muted-foreground">AI-generated production timeline based on scene analysis</p>
+              </div>
+            </div>
+
+            {/* Schedule Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-[#EBF3FC] dark:bg-sky-950/60 rounded-xl p-4 border border-[#001b94]/20 dark:border-sky-800/60 text-center">
+                <div className="text-2xl font-display font-bold text-[#001b94] dark:text-sky-300">24</div>
+                <div className="text-[10px] font-mono uppercase text-[#001b94] dark:text-sky-300">Estimated Shoot Days</div>
+              </div>
+              <div className="bg-[#EBF3FC] dark:bg-sky-950/60 rounded-xl p-4 border border-[#001b94]/20 dark:border-sky-800/60 text-center">
+                <div className="text-2xl font-display font-bold text-[#001b94] dark:text-sky-300">4</div>
+                <div className="text-[10px] font-mono uppercase text-[#001b94] dark:text-sky-300">Production Weeks</div>
+              </div>
+              <div className="bg-[#EBF3FC] dark:bg-sky-950/60 rounded-xl p-4 border border-[#001b94]/20 dark:border-sky-800/60 text-center">
+                <div className="text-2xl font-display font-bold text-[#001b94] dark:text-sky-300">3</div>
+                <div className="text-[10px] font-mono uppercase text-[#001b94] dark:text-sky-300">Location Units</div>
+              </div>
+            </div>
+
+            {/* Weekly Schedule Blocks */}
+            <div className="space-y-4">
+              {[
+                {
+                  week: "Week 1 — Pre-Production & Stage Setup",
+                  days: "Days 1–6",
+                  scenes: ["INT. Mission Control — Briefing Room", "INT. Lab — Equipment Prep", "INT. Shuttle Cockpit — Static Shots"],
+                  notes: "Stage construction, lighting setup, LED volume calibration. Rehearsals with principal cast.",
+                  status: "Prep Phase",
+                },
+                {
+                  week: "Week 2 — Interior Principal Photography",
+                  days: "Days 7–12",
+                  scenes: ["INT. Shuttle Cockpit — All Dialogue", "INT. Mission Control — Hayes Confrontation", "INT. Cargo Bay — Equipment Failure"],
+                  notes: "Core interior scenes on LED volume stage. Night shoots for cockpit sequences.",
+                  status: "Active Shoot",
+                },
+                {
+                  week: "Week 3 — Exterior & VFX Plates",
+                  days: "Days 13–18",
+                  scenes: ["EXT. Lunar Surface — Launch Pad", "EXT. Solar Storm Approach", "VFX Plate: Solar Eye Sequence"],
+                  notes: "Exterior lunar surface on stage. VFX reference plates and motion capture for solar sequences.",
+                  status: "Active Shoot",
+                },
+                {
+                  week: "Week 4 — Pick-ups & Wrap",
+                  days: "Days 19–24",
+                  scenes: ["Pick-up shots for all locations", "Additional VFX reference plates", "Cast and crew wrap"],
+                  notes: "Final pick-ups, B-roll, and production wrap. Begin post-production handoff.",
+                  status: "Wrap Phase",
+                },
+              ].map((week, idx) => (
+                <div key={idx} className="bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 p-5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-[#0F294D] dark:text-foreground">{week.week}</h4>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#001b94]/10 text-[#001b94] dark:bg-sky-900/30 dark:text-sky-400">{week.days}</span>
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                        week.status === "Active Shoot" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
+                        week.status === "Prep Phase" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" :
+                        "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+                      }`}>{week.status}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    {week.scenes.map((scene, sIdx) => (
+                      <div key={sIdx} className="flex items-center gap-2 text-xs text-foreground">
+                        <Clock className="h-3 w-3 text-[#FF6F00] flex-shrink-0" />
+                        <span>{scene}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-[#64748B] dark:text-muted-foreground leading-relaxed border-t border-border pt-2">{week.notes}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* AI Notes */}
+            <div className="p-4 rounded-xl border-2 border-[#FF6F00]/30 bg-gradient-to-r from-[#FF6F00]/5 via-amber-50/30 to-orange-50/20 dark:from-[#FF6F00]/10 dark:via-amber-950/30 dark:to-orange-950/20 space-y-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-[#FF6F00]" />
+                <span className="text-xs font-semibold text-[#0F294D] dark:text-foreground">AI Schedule Notes</span>
+              </div>
+              <p className="text-[11px] text-[#64748B] dark:text-muted-foreground leading-relaxed">
+                Schedule is optimized for LED volume stage availability. Week 3 exterior shoots are weather-dependent — backup interior scenes are available. Night shoot premium applies to 40% of scheduled days. Consider 2nd unit for VFX plate capture to parallel principal photography.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* LOCATION SCOUT SUB-TAB */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {productionSubTab === "locations" && <>
       <div className="bg-card rounded-xl border border-border p-6 md:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
           <div className="flex items-center gap-3">
@@ -1396,6 +1552,8 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
           )}
         </div>
       </div>
+
+      </>}
 
       {/* Actions (Max 3 visible: Back, Generate Summary) */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-border">

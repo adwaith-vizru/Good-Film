@@ -104,6 +104,48 @@
   animation: spinSlow 12s infinite linear;
 }
 
+@keyframes filmScroll {
+  0% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(-60px);
+  }
+}
+
+.animate-film-scroll {
+  animation: filmScroll 0.75s linear infinite;
+}
+
+.animate-film-scroll-slow {
+  animation: filmScroll 8s linear infinite;
+}
+
+.film-logo-strip {
+  transform: translateY(0px);
+  will-change: transform;
+}
+
+.film-logo-strip-hover {
+  animation: none;
+}
+
+/* Scroll continuously ONLY when parent group or container is hovered */
+.group:hover .film-logo-strip-hover,
+.film-logo-container:hover .film-logo-strip-hover,
+.film-logo-strip-hovering {
+  animation: filmScroll 0.7s linear infinite !important;
+}
+
+@keyframes filmGlow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.08); }
+}
+
+.animate-film-glow {
+  animation: filmGlow 2s ease-in-out infinite;
+}
+
 @keyframes flash {
   0% { opacity: 0; }
   30% { opacity: 1; }
