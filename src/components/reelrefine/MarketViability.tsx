@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import {
   TrendingUp,
   DollarSign,
@@ -15,6 +16,7 @@ import {
   Users,
   Globe,
   BarChart3,
+  PieChart as PieChartIcon,
 } from "lucide-react";
 import { ProjectOption } from "./reelRefineData";
 
@@ -172,6 +174,40 @@ export const MarketViability: React.FC<MarketViabilityProps> = ({
   const data = getMarketData(currentProject);
   const [showCollision, setShowCollision] = useState(true);
   const [showComps, setShowComps] = useState(true);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const PLATFORM_COLORS: Record<string, string> = {
+    Netflix: "#E50914",
+    "Amazon Prime": "#00A8E1",
+    "HBO Max": "#8020E0",
+    "Apple TV+": "#10B981",
+    "Disney+": "#113CCF",
+    Hulu: "#00ED82",
+    "MUBI/Criterion": "#FF6F00",
+  };
+
+  // Calculate normalized shares out of 100%
+  const rawSum = data.ottFit.reduce((acc, curr) => acc + curr.score, 0);
+  let normalizedData = data.ottFit.map((ott) => {
+    const rawShare = Math.round((ott.score / (rawSum || 1)) * 100);
+    return {
+      name: ott.platform,
+      score: ott.score,
+      share: rawShare,
+      reasoning: ott.reasoning,
+      color: PLATFORM_COLORS[ott.platform] || "#001b94",
+    };
+  });
+
+  // Ensure total share sums to exactly 100%
+  const currentShareSum = normalizedData.reduce((acc, curr) => acc + curr.share, 0);
+  const diffShare = 100 - currentShareSum;
+  if (diffShare !== 0 && normalizedData.length > 0) {
+    normalizedData[0].share += diffShare;
+  }
+
+  const pieData = normalizedData;
+  const topOtt = [...pieData].sort((a, b) => b.share - a.share)[0] || pieData[0];
 
   const threatColor = (t: string) => {
     if (t === "High") return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
@@ -204,51 +240,189 @@ export const MarketViability: React.FC<MarketViabilityProps> = ({
         </div>
       </div>
 
-      {/* Commercial Score + Verdict */}
-      <div className="bg-gradient-to-r from-[#0F294D] via-[#001b94] to-[#1E3A8A] rounded-2xl p-6 text-white border border-white/10">
-        <div className="flex items-center gap-6 flex-wrap">
-          <div className="flex flex-col items-center gap-2">
-            <div className="text-5xl font-display font-bold tracking-tight">{data.commercialScore}</div>
-            <div className="text-[10px] font-mono uppercase tracking-wider text-amber-300">Commercial Score</div>
-          </div>
-          <div className="flex-1 min-w-[250px]">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="h-4 w-4 text-[#FF6F00]" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-amber-300">AI Market Verdict</span>
+      {/* 2-Column Grid: Left Card = AI Market Verdict | Right Card = OTT Platform Share Pie Chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* Left Card: AI Market Verdict (5 Cols) */}
+        <div className="lg:col-span-5 bg-gradient-to-br from-[#0F294D] via-[#001b94] to-[#1E3A8A] rounded-2xl p-6 text-white border border-white/10 shadow-lg flex flex-col justify-between space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-[#FF6F00]" />
+                <span className="text-xs font-mono uppercase font-bold tracking-wider text-amber-300">
+                  AI Market Verdict
+                </span>
+              </div>
+              <span className="px-2.5 py-0.5 rounded-full bg-white/15 backdrop-blur-md text-emerald-300 text-[10px] font-mono font-bold border border-white/20">
+                Commercial Score
+              </span>
             </div>
-            <p className="text-sm text-slate-200 leading-relaxed">{data.commercialVerdict}</p>
-          </div>
-        </div>
-      </div>
 
-      {/* OTT Platform Fit */}
-      <div className="bg-card rounded-2xl border border-border p-5 space-y-4">
-        <div className="flex items-center gap-2">
-          <Tv className="h-4 w-4 text-[#FF6F00]" />
-          <h3 className="text-sm font-semibold text-foreground">OTT Platform Fit Scores</h3>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {data.ottFit.map((ott, idx) => (
-            <div key={idx} className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-4 border border-slate-200 dark:border-slate-700 space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-semibold text-foreground">{ott.platform}</h4>
-                <span className={`text-sm font-display font-bold ${
-                  ott.score >= 80 ? "text-emerald-600 dark:text-emerald-400" :
-                  ott.score >= 65 ? "text-amber-600 dark:text-amber-400" :
-                  "text-red-500"
-                }`}>{ott.score}%</span>
+            <div className="flex items-baseline gap-3 pt-2">
+              <div className="text-6xl font-display font-extrabold tracking-tight text-white">
+                {data.commercialScore}
               </div>
-              <div className="h-1.5 bg-slate-200 dark:bg-slate-600 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-700 ${
-                    ott.score >= 80 ? "bg-emerald-500" : ott.score >= 65 ? "bg-amber-500" : "bg-red-400"
-                  }`}
-                  style={{ width: `${ott.score}%` }}
-                />
+              <div>
+                <div className="text-xs font-mono font-bold uppercase tracking-wider text-amber-300">
+                  Commercial Score
+                </div>
+                <div className="text-[11px] text-slate-300 font-medium">
+                  {data.commercialScore >= 75 ? "High Commercial Viability" : "Moderate Viability"}
+                </div>
               </div>
-              <p className="text-[10px] text-muted-foreground leading-relaxed">{ott.reasoning}</p>
             </div>
-          ))}
+
+            <p className="text-xs md:text-sm text-slate-100 leading-relaxed font-normal pt-1">
+              {data.commercialVerdict}
+            </p>
+          </div>
+
+          <div className="pt-4 border-t border-white/15 space-y-2">
+            <div className="text-[10px] font-mono uppercase font-bold text-amber-300 tracking-wider">
+              Genre Trend & Market Pulse
+            </div>
+            <div className="flex items-center justify-between text-xs bg-white/10 backdrop-blur-sm p-3 rounded-xl border border-white/10">
+              <span className="font-semibold text-white">{data.genreTrend} Trend</span>
+              <span className="text-emerald-300 font-mono font-bold">Strong OTT Demand</span>
+            </div>
+            <p className="text-[11px] text-slate-300 leading-snug">
+              {data.genreTrendNote}
+            </p>
+          </div>
+        </div>
+
+        {/* Right Card: OTT Platform Share & Fit Scores (Pie Chart out of 100%) (7 Cols) */}
+        <div className="lg:col-span-7 bg-card rounded-2xl border border-border p-6 shadow-xs flex flex-col justify-between space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-[#FF6F00]/10 text-[#FF6F00] flex items-center justify-center font-bold">
+                <Tv className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-foreground flex items-center gap-2 flex-wrap">
+                  OTT Platform Market Share
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-mono font-bold">
+                    100% Total Share
+                  </span>
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Distribution of streaming platform share out of 100% based on audience fit
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs font-mono bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg border border-border self-start sm:self-auto">
+              <Sparkles className="w-3.5 h-3.5 text-[#FF6F00]" />
+              <span>Top: <strong className="text-[#001b94] dark:text-sky-300">{topOtt.name} ({topOtt.share}%)</strong></span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+            {/* Left Column: Donut Pie Chart (5 Cols) */}
+            <div className="md:col-span-5 flex flex-col items-center justify-center relative min-h-[220px] bg-slate-50/50 dark:bg-slate-900/40 rounded-xl p-3 border border-slate-100 dark:border-slate-800">
+              <div className="w-full h-56 relative">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={82}
+                      paddingAngle={4}
+                      dataKey="share"
+                      onMouseEnter={(_, index) => setActiveIndex(index)}
+                      onMouseLeave={() => setActiveIndex(null)}
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.color}
+                          stroke="currentColor"
+                          strokeWidth={activeIndex === index ? 3 : 1}
+                          className="transition-all duration-300 cursor-pointer hover:opacity-90"
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const item = payload[0].payload;
+                          return (
+                            <div className="bg-[#0F294D] text-white p-3 rounded-xl shadow-xl text-xs space-y-1 border border-white/10 z-50">
+                              <div className="font-bold flex items-center gap-1.5">
+                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                                {item.name}
+                              </div>
+                              <div className="text-amber-300 font-mono font-bold">
+                                Market Share: {item.share}% (Fit Score: {item.score}%)
+                              </div>
+                              <p className="text-[10px] text-slate-300 max-w-[200px] leading-snug">
+                                {item.reasoning}
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                {/* Center Donut Label */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-2xl font-display font-bold text-foreground">
+                    {activeIndex !== null ? `${pieData[activeIndex].share}%` : "100%"}
+                  </span>
+                  <span className="text-[9px] text-muted-foreground font-mono uppercase font-semibold">
+                    {activeIndex !== null ? pieData[activeIndex].name : "Total Share"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Platform Cards (7 Cols) */}
+            <div className="md:col-span-7 grid grid-cols-1 gap-2">
+              {pieData.map((ott, idx) => {
+                const isHovered = activeIndex === idx;
+
+                return (
+                  <div
+                    key={idx}
+                    onMouseEnter={() => setActiveIndex(idx)}
+                    onMouseLeave={() => setActiveIndex(null)}
+                    className={`p-2.5 rounded-xl border transition-all duration-200 cursor-pointer space-y-1 ${
+                      isHovered
+                        ? "bg-slate-100 dark:bg-slate-800/90 border-[#001b94] dark:border-sky-400 shadow-sm scale-[1.01]"
+                        : "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-xs"
+                          style={{ backgroundColor: ott.color }}
+                        />
+                        <h4 className="text-xs font-bold text-foreground">{ott.name}</h4>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-display font-bold text-[#001b94] dark:text-sky-300 bg-[#001b94]/10 dark:bg-sky-500/20 px-2 py-0.5 rounded-md font-mono">
+                          {ott.share}%
+                        </span>
+                        <span className="text-[10px] text-muted-foreground font-mono font-semibold">
+                          ({ott.score}% Fit)
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-1">
+                      {ott.reasoning}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 

@@ -110,6 +110,40 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
   const [budgetOverrides, setBudgetOverrides] = useState<BudgetOverride[]>([]);
   const [tempBudgetEdits, setTempBudgetEdits] = useState<Record<string, { low: string; high: string }>>({});
 
+  // Custom User Budget Items State
+  interface CustomLineItem {
+    id: string;
+    category: string;
+    low: number;
+    high: number;
+    note?: string;
+  }
+  const [customLineItems, setCustomLineItems] = useState<CustomLineItem[]>([]);
+  const [newCustomCategoryName, setNewCustomCategoryName] = useState("");
+  const [newCustomLow, setNewCustomLow] = useState("");
+  const [newCustomHigh, setNewCustomHigh] = useState("");
+
+  const handleAddCustomItemInModal = () => {
+    if (!newCustomCategoryName.trim()) return;
+    const low = parseInt(newCustomLow) || 50;
+    const high = parseInt(newCustomHigh) || 120;
+    const newItem: CustomLineItem = {
+      id: `custom-budget-${Date.now()}`,
+      category: newCustomCategoryName.trim(),
+      low,
+      high,
+      note: "Custom user budget item added from Add Budget Item",
+    };
+    setCustomLineItems((prev) => [...prev, newItem]);
+    setNewCustomCategoryName("");
+    setNewCustomLow("");
+    setNewCustomHigh("");
+  };
+
+  const handleDeleteCustomItem = (id: string) => {
+    setCustomLineItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
   // Refs for modal overlay close
   const castModalRef = useRef<HTMLDivElement>(null);
   const budgetModalRef = useRef<HTMLDivElement>(null);
@@ -187,6 +221,13 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
       lowSum += baseLow;
       highSum += baseHigh;
     });
+
+    // Add custom user-created line items
+    customLineItems.forEach((item) => {
+      lowSum += item.low;
+      highSum += item.high;
+    });
+
     return { low: lowSum, high: highSum };
   };
 
@@ -201,6 +242,79 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
     () => getAIBudgetSuggestions(budgetTier, castBudgetLow, castBudgetHigh),
     [budgetTier, castBudgetLow, castBudgetHigh]
   );
+
+  // Custom & User-Adjusted Budget Allocations Card data
+  const customCategoryAllocations = useMemo(() => {
+    const allocations: Array<{
+      id: string;
+      category: string;
+      low: number;
+      high: number;
+      note: string;
+      isCustom: boolean;
+      badgeType: "AUTO" | "OVERRIDE" | "NEW" | "DEFAULT";
+      badgeText: string;
+      isUserCreated: boolean;
+    }> = [];
+
+    // Standard categories
+    BUDGET_CATEGORIES.forEach((cat) => {
+      const override = budgetOverrides.find((o) => o.category === cat.category);
+      const defaults = budgetTier === "Micro" ? cat.micro : budgetTier === "Indie" ? cat.indie : cat.studio;
+      let low = defaults.low;
+      let high = defaults.high;
+      let note = "Standard category allocation";
+      let isCustom = false;
+      let badgeType: "AUTO" | "OVERRIDE" | "NEW" | "DEFAULT" = "DEFAULT";
+      let badgeText = "DEFAULT";
+
+      if (cat.category === "Talent & Cast") {
+        low = castBudgetLow;
+        high = castBudgetHigh;
+        note = "Auto-adjusted from cast shortlist selection";
+        badgeType = "AUTO";
+        badgeText = "AUTO";
+      }
+
+      if (override) {
+        low = override.low;
+        high = override.high;
+        note = "Custom user override saved via Add Budget Item";
+        isCustom = true;
+        badgeType = "OVERRIDE";
+        badgeText = "OVERRIDE";
+      }
+
+      allocations.push({
+        id: `cat-${cat.category}`,
+        category: cat.category,
+        low,
+        high,
+        note,
+        isCustom,
+        badgeType,
+        badgeText,
+        isUserCreated: false,
+      });
+    });
+
+    // User-created custom line items
+    customLineItems.forEach((item) => {
+      allocations.push({
+        id: item.id,
+        category: item.category,
+        low: item.low,
+        high: item.high,
+        note: item.note || "User-added custom budget item",
+        isCustom: true,
+        badgeType: "NEW",
+        badgeText: "CUSTOM ITEM",
+        isUserCreated: true,
+      });
+    });
+
+    return allocations;
+  }, [budgetOverrides, customLineItems, budgetTier, castBudgetLow, castBudgetHigh]);
 
   // Filter existing dashboard locations (Search Bar 1)
   const filteredDashboardLocations = locations.filter((loc) => {
@@ -947,38 +1061,88 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
           </div>
         </div>
 
-        {/* Radio Scale Selection (3 options: Micro, Indie, Studio-lite) */}
-        <div className="grid sm:grid-cols-3 gap-4">
-          {[
-            { key: "Micro", label: "Micro Budget", range: "< $500K", desc: "Non-union, local stage, ultra-lean crew" },
-            { key: "Indie", label: "Indie Feature", range: "$500K – $2M", desc: "SAG Tier 2, regional tax rebate, VFX post" },
-            { key: "Studio", label: "Studio-Lite", range: "$2M – $5M", desc: "Full union heads, LED volume, A-list talent" },
-          ].map((tier) => {
-            const isChecked = budgetTier === tier.key;
-            return (
-              <button
-                key={tier.key}
-                type="button"
-                onClick={() => onBudgetTierChange(tier.key as any)}
-                className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between space-y-2 bg-card ${
-                  isChecked
-                    ? "border-[#001b94] dark:border-sky-400 ring-2 ring-[#001b94]/20 dark:ring-sky-400/20"
-                    : "border-border hover:border-slate-300 dark:hover:border-slate-700"
+        {/* Custom & User-Adjusted Budget Card */}
+        <div className="p-4 rounded-xl border-2 border-[#001b94]/30 dark:border-sky-500/30 bg-gradient-to-r from-[#001b94]/5 via-blue-50/30 to-sky-50/20 dark:from-[#001b94]/20 dark:via-sky-950/30 dark:to-blue-950/20 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#001b94] to-sky-600 text-white flex items-center justify-center shadow-md">
+                <DollarSign className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-[#0F294D] dark:text-foreground flex items-center gap-1.5">
+                  Custom Budget Allocations
+                  <span className="px-2 py-0.5 bg-[#001b94] dark:bg-sky-600 text-white text-[9px] font-bold uppercase tracking-widest rounded-full">
+                    {budgetOverrides.length + customLineItems.length > 0
+                      ? `${budgetOverrides.length + customLineItems.length} Custom Items`
+                      : "Active Package"}
+                  </span>
+                </h4>
+                <p className="text-[11px] text-[#64748B] dark:text-muted-foreground">
+                  Custom line items and category overrides added from "+ Add Budget Item"
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleOpenBudgetModal}
+              className="px-3.5 py-1.5 bg-[#001b94] dark:bg-sky-600 hover:bg-[#001470] dark:hover:bg-sky-500 text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5 shadow-sm hover:shadow self-start sm:self-auto"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add / Edit Custom Item</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {customCategoryAllocations.map((item) => (
+              <div
+                key={item.id}
+                className={`p-2.5 bg-white/70 dark:bg-slate-900/60 rounded-lg border space-y-1 ${
+                  item.isCustom
+                    ? "border-[#001b94]/30 dark:border-sky-400/40 ring-1 ring-[#001b94]/20 dark:ring-sky-400/20"
+                    : "border-slate-200 dark:border-slate-800"
                 }`}
               >
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-[#0F294D] dark:text-foreground text-sm">{tier.label}</span>
-                    <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${isChecked ? "border-[#001b94] dark:border-sky-400 bg-[#001b94] dark:bg-sky-500 text-white" : "border-slate-300 dark:border-slate-700"}`}>
-                      {isChecked && <Check className="w-3 h-3" />}
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[11px] font-semibold text-[#0F294D] dark:text-foreground truncate">
+                    {item.category}
+                  </span>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <span
+                      className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${
+                        item.badgeType === "OVERRIDE"
+                          ? "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+                          : item.badgeType === "NEW"
+                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                          : item.badgeType === "AUTO"
+                          ? "bg-[#001b94]/10 text-[#001b94] dark:bg-sky-500/20 dark:text-sky-300"
+                          : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                      }`}
+                    >
+                      {item.badgeText}
                     </span>
+                    {item.isUserCreated && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCustomItem(item.id)}
+                        className="p-0.5 text-slate-400 hover:text-rose-600 transition-colors"
+                        title="Remove custom budget item"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
-                  <div className="text-xs font-bold text-[#001b94] dark:text-sky-400 mb-1">{tier.range}</div>
-                  <p className="text-xs text-[#64748B] dark:text-muted-foreground leading-snug">{tier.desc}</p>
                 </div>
-              </button>
-            );
-          })}
+
+                <div className="text-xs font-bold text-[#001b94] dark:text-sky-400">
+                  ${item.low}K – ${item.high}K
+                </div>
+                <p className="text-[10px] text-[#64748B] dark:text-muted-foreground line-clamp-2">
+                  {item.note}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Category Breakdown Table Expander */}
@@ -1191,6 +1355,65 @@ export const ProductionPlans: React.FC<ProductionPlansProps> = ({
                   </div>
                 );
               })}
+
+              {/* Add New Custom Budget Line Item Section */}
+              <div className="pt-2 border-t border-border space-y-3">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#001b94] dark:text-sky-300">
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add New Custom Budget Line Item</span>
+                </div>
+
+                <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-border space-y-2.5">
+                  <div>
+                    <label className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] dark:text-muted-foreground block mb-1">
+                      Custom Category / Item Name
+                    </label>
+                    <input
+                      type="text"
+                      value={newCustomCategoryName}
+                      onChange={(e) => setNewCustomCategoryName(e.target.value)}
+                      placeholder="e.g. Stunt Team & Rigging, Music Score, Aerial Drone..."
+                      className="w-full px-3 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#001b94] dark:focus:ring-sky-400 font-medium text-foreground"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] dark:text-muted-foreground block mb-1">
+                        Low ($K)
+                      </label>
+                      <input
+                        type="number"
+                        value={newCustomLow}
+                        onChange={(e) => setNewCustomLow(e.target.value)}
+                        placeholder="50"
+                        className="w-full px-3 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#001b94] dark:focus:ring-sky-400 font-semibold text-foreground"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] dark:text-muted-foreground block mb-1">
+                        High ($K)
+                      </label>
+                      <input
+                        type="number"
+                        value={newCustomHigh}
+                        onChange={(e) => setNewCustomHigh(e.target.value)}
+                        placeholder="120"
+                        className="w-full px-3 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#001b94] dark:focus:ring-sky-400 font-semibold text-foreground"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAddCustomItemInModal}
+                    disabled={!newCustomCategoryName.trim()}
+                    className="w-full py-2 bg-[#001b94] dark:bg-sky-600 hover:bg-[#001470] dark:hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Custom Line Item
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Modal Footer */}
