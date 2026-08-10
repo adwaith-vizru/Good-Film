@@ -369,8 +369,9 @@ export const ReelRefineStudio: React.FC = () => {
           {activeTab === "investment" && (
             <InvestmentIntelligence
               currentProject={currentProject}
-              onNext={() => setActiveTab("export")}
-              onBack={() => setActiveTab("storyboard")}
+              shortlistedActors={shortlistedActors}
+              onNext={() => setActiveTab("release")}
+              onBack={() => setActiveTab("export")}
             />
           )}
 
@@ -393,7 +394,7 @@ export const ReelRefineStudio: React.FC = () => {
           {activeTab === "release" && (
             <ReleaseStrategy
               currentProject={currentProject}
-              onBack={() => setActiveTab("export")}
+              onBack={() => setActiveTab("investment")}
               activeSubTab={releaseSubTab}
               onSelectSubTab={setReleaseSubTab}
             />

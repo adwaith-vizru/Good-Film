@@ -153,20 +153,21 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
           description: "Cinematic shot keyframes",
         },
         {
-          id: "investment",
-          label: "Investment Intelligence",
-          icon: PieChart,
-          description: "Investment score & market comps",
-        },
-        {
           id: "export",
           label: "Pitch Deck & Export",
           icon: FileCheck2,
           description: "Summary package & call sheets",
         },
         {
+          id: "investment",
+          label: "Investment Returns & ROI",
+          icon: PieChart,
+          badge: "ROI Calculator",
+          description: "Producer returns, profit & platform breakdown",
+        },
+        {
           id: "release",
-          label: "Release & Marketing",
+          label: "Release & Marketing Strategy",
           icon: Megaphone,
           description: "Release window, certification & posters",
           subItems: [
